@@ -277,7 +277,7 @@ export default function AnalyticsPage() {
 
     // Benefits Analysis
     const benefitsDistribution = filteredData.reduce((acc, sub) => {
-      if (sub.benefits_experienced) {
+      if (sub.benefits_experienced && Array.isArray(sub.benefits_experienced)) {
         sub.benefits_experienced.forEach(benefit => {
           acc[benefit] = (acc[benefit] || 0) + 1
         })
