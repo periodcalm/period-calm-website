@@ -31,27 +31,26 @@ export async function GET() {
       })
     }
     
-    // Process submissions to ensure array fields are properly handled
+    // Process submissions for the new clean schema
     const submissions = submissionsData?.map((sub: any) => {
-      // Ensure benefits_experienced is always an array
+      // Ensure JSONB array fields are properly handled
       if (sub.benefits_experienced && !Array.isArray(sub.benefits_experienced)) {
         try {
           sub.benefits_experienced = JSON.parse(sub.benefits_experienced)
         } catch {
-          sub.benefits_experienced = sub.benefits_experienced.split(',').map((s: string) => s.trim()).filter(Boolean)
+          sub.benefits_experienced = []
         }
       }
       
-      // Ensure lifestyle_impact is always an array
       if (sub.lifestyle_impact && !Array.isArray(sub.lifestyle_impact)) {
         try {
           sub.lifestyle_impact = JSON.parse(sub.lifestyle_impact)
         } catch {
-          sub.lifestyle_impact = sub.lifestyle_impact.split(',').map((s: string) => s.trim()).filter(Boolean)
+          sub.lifestyle_impact = []
         }
       }
       
-      // Ensure numeric fields are numbers
+      // Ensure numeric fields are numbers (they should already be integers from the new schema)
       sub.overall_satisfaction = Number(sub.overall_satisfaction) || 0
       
       return sub

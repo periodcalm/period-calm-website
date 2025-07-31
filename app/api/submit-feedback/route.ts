@@ -23,21 +23,9 @@ export async function POST(request: Request) {
       )
     }
     
-    // Prepare submission data with proper data type handling
+    // Prepare submission data for the new clean schema
     const submission = {
-      ...body,
-      // Ensure array fields are properly formatted
-      benefits_experienced: Array.isArray(body.benefits_experienced) ? body.benefits_experienced : [],
-      lifestyle_impact: Array.isArray(body.lifestyle_impact) ? body.lifestyle_impact : [],
-      self_care_essentials: Array.isArray(body.self_care_essentials) ? body.self_care_essentials : [],
-      
-      // Ensure numeric fields are numbers (handle empty strings)
-      overall_satisfaction: body.overall_satisfaction === '' ? 0 : Number(body.overall_satisfaction) || 0,
-      taste_rating: body.taste_rating === '' ? 0 : Number(body.taste_rating) || 0,
-      value_rating: body.value_rating === '' ? 0 : Number(body.value_rating) || 0,
-      packaging_rating: body.packaging_rating === '' ? 0 : Number(body.packaging_rating) || 0,
-      
-      // Ensure string fields are strings
+      // Basic Information
       first_name: String(body.first_name || ''),
       last_name: String(body.last_name || ''),
       email: String(body.email || ''),
@@ -45,43 +33,66 @@ export async function POST(request: Request) {
       phone: String(body.phone || ''),
       city: String(body.city || ''),
       state: String(body.state || ''),
-      instagram: String(body.instagram || ''),
+      
+      // Period Information
       cycle_length: String(body.cycle_length || ''),
       last_period_date: String(body.last_period_date || ''),
       period_regularity: String(body.period_regularity || ''),
-      previous_pain_management: String(body.previous_pain_management || ''),
       pain_severity: String(body.pain_severity || ''),
+      previous_pain_management: String(body.previous_pain_management || ''),
+      
+      // Product Experience
       when_tried: String(body.when_tried || ''),
       timing_of_use: String(body.timing_of_use || ''),
       frequency_of_use: String(body.frequency_of_use || ''),
       preparation_method: String(body.preparation_method || ''),
       effect_speed: String(body.effect_speed || ''),
+      
+      // Ratings (ensure they are integers)
+      overall_satisfaction: Number(body.overall_satisfaction) || 0,
+      taste_rating: Number(body.taste_rating) || 0,
+      value_rating: Number(body.value_rating) || 0,
+      packaging_rating: Number(body.packaging_rating) || 0,
+      
+      // Experience Details
       would_drink_again: String(body.would_drink_again || ''),
+      would_recommend: String(body.would_recommend || ''),
       side_effects: String(body.side_effects || ''),
       convenience_rating: String(body.convenience_rating || ''),
       storage_experience: String(body.storage_experience || ''),
       dosage_followed: String(body.dosage_followed || ''),
+      
+      // Benefits and Impact (as JSON arrays)
+      benefits_experienced: Array.isArray(body.benefits_experienced) ? body.benefits_experienced : [],
+      lifestyle_impact: Array.isArray(body.lifestyle_impact) ? body.lifestyle_impact : [],
+      self_care_essentials: Array.isArray(body.self_care_essentials) ? body.self_care_essentials : [],
+      
+      // Pricing and Purchase
       budget_range: String(body.budget_range || ''),
       price_points: String(body.price_points || ''),
       purchase_intent: String(body.purchase_intent || ''),
+      
+      // Community and Engagement
       current_feeling: String(body.current_feeling || ''),
       confidence_boost: String(body.confidence_boost || ''),
       face_and_soul_campaign: String(body.face_and_soul_campaign || ''),
       community_interest: String(body.community_interest || ''),
       volunteer_interest: String(body.volunteer_interest || ''),
       testimonial_permission: String(body.testimonial_permission || ''),
+      
+      // Feedback
       improvements: String(body.improvements || ''),
-      would_recommend: String(body.would_recommend || ''),
       price_feedback: String(body.price_feedback || ''),
       final_thoughts: String(body.final_thoughts || ''),
       
+      // Metadata
       submitted_at: new Date().toISOString(),
       source: 'website'
     }
     
-    console.log('Prepared submission with data type handling:', {
-      id: submission.id,
+    console.log('Prepared submission for new schema:', {
       first_name: submission.first_name,
+      email: submission.email,
       benefits_experienced: submission.benefits_experienced,
       benefits_type: typeof submission.benefits_experienced,
       is_array: Array.isArray(submission.benefits_experienced),
@@ -92,7 +103,7 @@ export async function POST(request: Request) {
       packaging_rating: submission.packaging_rating
     })
     
-    // Log all numeric fields to identify the problematic one
+    // Log all numeric fields to verify they are numbers
     const numericFields = {
       overall_satisfaction: submission.overall_satisfaction,
       taste_rating: submission.taste_rating,
@@ -102,10 +113,10 @@ export async function POST(request: Request) {
     
     console.log('Numeric fields check:', numericFields)
     
-    // Check for any empty strings in numeric fields
+    // Verify all numeric fields are actually numbers
     Object.entries(numericFields).forEach(([field, value]) => {
-      if (value === '') {
-        console.error(`⚠️ Empty string found in numeric field: ${field}`)
+      if (typeof value !== 'number') {
+        console.error(`⚠️ Non-number found in numeric field: ${field} = ${value} (${typeof value})`)
       }
     })
     
