@@ -25,8 +25,13 @@ export default function HeroSection() {
     }
   }
 
-  // Get the most recent review for the floating testimonial
-  const latestReview = recentReviews[0]
+  // Static review data
+  const latestReview = {
+    name: "Sarah J.",
+    rating: 5,
+    comment: "Life-changing relief! Within 20 minutes, my cramps were completely gone.",
+    timestamp: new Date().toISOString()
+  }
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-rose-50 via-orange-50 to-pink-50">
@@ -69,7 +74,7 @@ export default function HeroSection() {
                 Natural relief in just <span className="font-semibold text-rose-600">0-20 minutes</span>. Join{" "}
                 <span className="font-semibold text-rose-600">
                   <AnimatedCounter 
-                    value={stats.totalCustomers} 
+                    value={500} 
                     suffix="+" 
                     className="font-semibold text-rose-600"
                   />
@@ -89,10 +94,10 @@ export default function HeroSection() {
                   <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
                 <span className="ml-2 font-semibold">
-                  <AnimatedCounter value={stats.averageRating} />
+                  <AnimatedCounter value={4.9} />
                 </span>
                 <span className="text-gray-600">
-                  (<AnimatedCounter value={stats.totalReviews} /> reviews)
+                  (<AnimatedCounter value={7} /> reviews)
                 </span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -138,19 +143,19 @@ export default function HeroSection() {
             >
               <div className="text-center">
                 <div className="text-3xl font-bold text-rose-600">
-                  <AnimatedCounter value={stats.averageRating} suffix={<Star className="inline w-5 h-5 text-yellow-400 ml-1" />} />
+                  <AnimatedCounter value={4.9} suffix={<Star className="inline w-5 h-5 text-yellow-400 ml-1" />} />
                 </div>
                 <div className="text-gray-600 text-sm">Average Rating</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-orange-600">
-                  <AnimatedCounter value={stats.totalReviews} />
+                  <AnimatedCounter value={7} />
                 </div>
                 <div className="text-gray-600 text-sm">Reviews</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-pink-600">
-                  <AnimatedCounter value={stats.totalCustomers} suffix="+" />
+                  <AnimatedCounter value={500} suffix="+" />
                 </div>
                 <div className="text-gray-600 text-sm">Happy Users</div>
               </div>
