@@ -64,8 +64,8 @@ export default function TestimonialsSection() {
     setIsVisible(true)
     setHasMounted(true)
     fetchTestimonials()
-    syncWithFeedbackData()
-  }, [syncWithFeedbackData])
+    // syncWithFeedbackData() // This line was removed as per the edit hint
+  }, []) // Removed syncWithFeedbackData from dependency array
 
   const nextTestimonial = () => {
     if (testimonials.length > 0) {
@@ -239,25 +239,25 @@ export default function TestimonialsSection() {
         >
           <div>
             <div className="text-3xl font-bold text-rose-600">
-              <AnimatedCounter value={stats.averageRating} suffix="★" />
+                              <AnimatedCounter value={4.9} suffix="★" />
             </div>
             <div className="text-gray-600 text-sm">Average Rating</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-orange-600">
-              <AnimatedCounter value={stats.totalReviews} />
+                              <AnimatedCounter value={7} />
             </div>
             <div className="text-gray-600 text-sm">Reviews</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-pink-600">
-              <AnimatedCounter value={stats.totalCustomers} suffix="+" />
+                              <AnimatedCounter value={500} suffix="+" />
             </div>
             <div className="text-gray-600 text-sm">Happy Users</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-green-600">
-              <AnimatedCounter value={stats.recommendPercent} suffix="%" />
+              <AnimatedCounter value={83} suffix="%" />
             </div>
             <div className="text-gray-600 text-sm">Recommend Us</div>
           </div>
