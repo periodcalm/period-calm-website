@@ -13,7 +13,7 @@ import { useCartStore } from "@/lib/cart-store"
 import { ShoppingCart } from "@/components/shopping-cart"
 import { ComingSoonModal } from "@/components/ComingSoonModal"
 
-import SimpleFeedbackForm from "./SimpleFeedbackForm"
+import AIChatFeedbackForm from "./AIChatFeedbackForm"
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
@@ -221,7 +221,7 @@ export function Header() {
 
                   {/* Empower Us Modal - always render when isFeedbackOpen is true */}
             {isFeedbackOpen && (
-              <SimpleFeedbackForm isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+              <AIChatFeedbackForm onCloseAction={() => setIsFeedbackOpen(false)} />
             )}
       
       {/* Coming Soon Modal */}
