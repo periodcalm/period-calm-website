@@ -1,29 +1,31 @@
 import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-// Simple JSON file storage
-const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
+import { kv } from '@vercel/kv'
 
 export async function GET() {
   try {
     console.log('=== EXPORT FEEDBACK API ===')
     
-    // Check if data file exists
-    if (!existsSync(DATA_FILE)) {
-      console.log('No data file found, returning empty export')
+    // Get submissions from KV
+    let submissions: any[] = []
+    try {
+      const existingData = await kv.get('feedback-submissions')
+      if (existingData) {
+        submissions = existingData as any[]
+        console.log('Export: Loaded', submissions.length, 'submissions from KV')
+      } else {
+        console.log('Export: No data in KV, returning empty export')
+        return NextResponse.json({
+          success: false,
+          message: 'No feedback data available to export'
+        })
+      }
+    } catch (kvError) {
+      console.error('Export: Error reading from KV:', kvError)
       return NextResponse.json({
         success: false,
         message: 'No feedback data available to export'
       })
     }
-    
-    // Read submissions from file
-    const fileContent = await readFile(DATA_FILE, 'utf-8')
-    const submissions = JSON.parse(fileContent)
-    
-    console.log('Export: Loaded', submissions.length, 'submissions from file')
     
     if (submissions.length === 0) {
       return NextResponse.json({

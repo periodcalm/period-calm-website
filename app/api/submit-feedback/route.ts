@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server'
-import { writeFile, readFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-// Simple JSON file storage
-const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
+import { kv } from '@vercel/kv'
 
 export async function POST(request: Request) {
   try {
@@ -33,35 +28,18 @@ export async function POST(request: Request) {
     
     console.log('Prepared submission:', submission)
     
-    // Ensure data directory exists
-    const dataDir = path.dirname(DATA_FILE)
-    console.log('Data directory path:', dataDir)
-    console.log('Data file path:', DATA_FILE)
-    
+    // Get existing submissions from KV
+    let submissions: any[] = []
     try {
-      if (!existsSync(dataDir)) {
-        console.log('Creating data directory...')
-        await mkdir(dataDir, { recursive: true })
-        console.log('Data directory created successfully')
-      }
-    } catch (dirError) {
-      console.error('Error creating data directory:', dirError)
-      // Continue anyway, might be a permission issue
-    }
-    
-    // Read existing submissions
-    let submissions = []
-    try {
-      if (existsSync(DATA_FILE)) {
-        console.log('Reading existing data file...')
-        const fileContent = await readFile(DATA_FILE, 'utf-8')
-        submissions = JSON.parse(fileContent)
-        console.log('Successfully read', submissions.length, 'existing submissions')
+      const existingData = await kv.get('feedback-submissions')
+      if (existingData) {
+        submissions = existingData as any[]
+        console.log('Loaded', submissions.length, 'existing submissions from KV')
       } else {
-        console.log('No existing data file found, starting fresh')
+        console.log('No existing data in KV, starting fresh')
       }
-    } catch (readError) {
-      console.error('Error reading existing data:', readError)
+    } catch (kvReadError) {
+      console.error('Error reading from KV:', kvReadError)
       console.log('Starting with empty submissions array')
       submissions = []
     }
@@ -70,16 +48,15 @@ export async function POST(request: Request) {
     submissions.push(submission)
     console.log('Added submission to array. Total submissions:', submissions.length)
     
-    // Write back to file - this is crucial for persistence
+    // Save to KV storage
     try {
-      console.log('Writing data to file...')
-      await writeFile(DATA_FILE, JSON.stringify(submissions, null, 2))
-      console.log('Successfully wrote data to file')
-    } catch (writeError) {
-      console.error('Error writing to file:', writeError)
-      // This is critical - if we can't write, the data won't persist
+      console.log('Saving data to KV...')
+      await kv.set('feedback-submissions', submissions)
+      console.log('Successfully saved data to KV')
+    } catch (kvWriteError) {
+      console.error('Error writing to KV:', kvWriteError)
       return NextResponse.json(
-        { error: 'Failed to save data - serverless environment limitation' },
+        { error: 'Failed to save data - KV storage error' },
         { status: 500 }
       )
     }

@@ -1,18 +1,35 @@
 import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-// Simple JSON file storage
-const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
+import { kv } from '@vercel/kv'
 
 export async function GET() {
   try {
     console.log('=== SIMPLE ANALYTICS API ===')
     
-    // Check if data file exists
-    if (!existsSync(DATA_FILE)) {
-      console.log('No data file found, returning empty analytics')
+    // Get submissions from KV
+    let submissions: any[] = []
+    try {
+      const existingData = await kv.get('feedback-submissions')
+      if (existingData) {
+        submissions = existingData as any[]
+        console.log('Analytics: Loaded', submissions.length, 'submissions from KV')
+      } else {
+        console.log('Analytics: No data in KV, returning empty analytics')
+        return NextResponse.json({
+          success: true,
+          data: {
+            totalSubmissions: 0,
+            averageSatisfaction: 0,
+            averageTasteRating: 0,
+            averageValueRating: 0,
+            averagePackagingRating: 0,
+            recommendationRate: 0,
+            recentSubmissions: [],
+            submissions: []
+          }
+        })
+      }
+    } catch (kvError) {
+      console.error('Analytics: Error reading from KV:', kvError)
       return NextResponse.json({
         success: true,
         data: {
@@ -27,12 +44,6 @@ export async function GET() {
         }
       })
     }
-    
-    // Read submissions from file
-    const fileContent = await readFile(DATA_FILE, 'utf-8')
-    const submissions = JSON.parse(fileContent)
-    
-    console.log('Loaded submissions:', submissions.length)
     
     if (submissions.length === 0) {
       return NextResponse.json({
