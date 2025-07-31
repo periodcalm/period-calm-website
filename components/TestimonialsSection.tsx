@@ -34,38 +34,12 @@ export default function TestimonialsSection() {
   const [error, setError] = useState<string | null>(null)
 
 
-  const fetchTestimonials = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      
-      const response = await fetch('/api/testimonials')
-      if (!response.ok) {
-        throw new Error('Failed to fetch testimonials')
-      }
-      
-      const result = await response.json()
-      if (result.success && result.data) {
-        setTestimonials(result.data)
-        console.log('📝 Loaded testimonials:', result.data.length)
-      } else {
-        setTestimonials([])
-      }
-    } catch (err) {
-      console.error('Error fetching testimonials:', err)
-      setError('Failed to load testimonials')
-      setTestimonials([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   useEffect(() => {
     setIsVisible(true)
     setHasMounted(true)
-    fetchTestimonials()
-    // syncWithFeedbackData() // This line was removed as per the edit hint
-  }, []) // Removed syncWithFeedbackData from dependency array
+    // Use static testimonials instead of API call
+    setTestimonials([])
+  }, [])
 
   const nextTestimonial = () => {
     if (testimonials.length > 0) {

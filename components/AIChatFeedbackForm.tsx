@@ -408,6 +408,7 @@ const QUESTIONS = [
 ]
 
 export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: () => void }) {
+  const [mounted, setMounted] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [feedbackData, setFeedbackData] = useState<FeedbackData>({
     first_name: '',
@@ -461,6 +462,12 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
 
   const currentQuestion = QUESTIONS[currentStep]
   const progress = ((currentStep + 1) / QUESTIONS.length) * 100
+
+  useEffect(() => {
+    setMounted(true)
+    // Clear any saved progress
+    localStorage.removeItem('feedbackProgress')
+  }, [])
 
   const handleInputChange = (value: string) => {
     setCurrentAnswer(value)
@@ -587,6 +594,14 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
     setError(null)
     
     try {
+      // Debug: Log the data being sent
+      console.log('Submitting feedback data:', feedbackData)
+      
+      // Validate email before sending
+      if (!feedbackData.email || !feedbackData.email.includes('@')) {
+        throw new Error('Please provide a valid email address')
+      }
+      
       // Submit feedback to API
       const response = await fetch('/api/submit-feedback', {
         method: 'POST',
@@ -867,6 +882,11 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
     }
 
     return renderQuestion()
+  }
+
+  // Prevent hydration issues
+  if (!mounted) {
+    return null
   }
 
   return (
