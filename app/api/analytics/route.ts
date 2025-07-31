@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server'
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
+
+// Initialize Redis client
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
 
 export async function GET() {
   try {
     console.log('=== SIMPLE ANALYTICS API ===')
     
-    // Get submissions from KV
+    // Get submissions from Redis
     let submissions: any[] = []
     try {
-      const existingData = await kv.get('feedback-submissions')
+      const existingData = await redis.get('feedback-submissions')
       if (existingData) {
         submissions = existingData as any[]
-        console.log('Analytics: Loaded', submissions.length, 'submissions from KV')
+        console.log('Analytics: Loaded', submissions.length, 'submissions from Redis')
       } else {
-        console.log('Analytics: No data in KV, returning empty analytics')
+        console.log('Analytics: No data in Redis, returning empty analytics')
         return NextResponse.json({
           success: true,
           data: {
@@ -28,8 +34,8 @@ export async function GET() {
           }
         })
       }
-    } catch (kvError) {
-      console.error('Analytics: Error reading from KV:', kvError)
+    } catch (redisError) {
+      console.error('Analytics: Error reading from Redis:', redisError)
       return NextResponse.json({
         success: true,
         data: {

@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server'
-import { kv } from '@vercel/kv'
+import { Redis } from '@upstash/redis'
+
+// Initialize Redis client
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
 
 export async function POST(request: Request) {
   try {
@@ -28,18 +34,18 @@ export async function POST(request: Request) {
     
     console.log('Prepared submission:', submission)
     
-    // Get existing submissions from KV
+    // Get existing submissions from Redis
     let submissions: any[] = []
     try {
-      const existingData = await kv.get('feedback-submissions')
+      const existingData = await redis.get('feedback-submissions')
       if (existingData) {
         submissions = existingData as any[]
-        console.log('Loaded', submissions.length, 'existing submissions from KV')
+        console.log('Loaded', submissions.length, 'existing submissions from Redis')
       } else {
-        console.log('No existing data in KV, starting fresh')
+        console.log('No existing data in Redis, starting fresh')
       }
-    } catch (kvReadError) {
-      console.error('Error reading from KV:', kvReadError)
+    } catch (redisReadError) {
+      console.error('Error reading from Redis:', redisReadError)
       console.log('Starting with empty submissions array')
       submissions = []
     }
@@ -48,15 +54,15 @@ export async function POST(request: Request) {
     submissions.push(submission)
     console.log('Added submission to array. Total submissions:', submissions.length)
     
-    // Save to KV storage
+    // Save to Redis storage
     try {
-      console.log('Saving data to KV...')
-      await kv.set('feedback-submissions', submissions)
-      console.log('Successfully saved data to KV')
-    } catch (kvWriteError) {
-      console.error('Error writing to KV:', kvWriteError)
+      console.log('Saving data to Redis...')
+      await redis.set('feedback-submissions', submissions)
+      console.log('Successfully saved data to Redis')
+    } catch (redisWriteError) {
+      console.error('Error writing to Redis:', redisWriteError)
       return NextResponse.json(
-        { error: 'Failed to save data - KV storage error' },
+        { error: 'Failed to save data - Redis storage error' },
         { status: 500 }
       )
     }
