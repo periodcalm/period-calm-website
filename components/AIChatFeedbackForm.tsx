@@ -10,21 +10,22 @@ import { Star, X, ArrowLeft, ArrowRight, Sparkles, Heart, MessageCircle, CheckCi
 import { useRouter } from 'next/navigation'
 
 interface FeedbackData {
-  // Basic Information
+  // Personal Information
   first_name: string
   last_name: string
   email: string
-  age: string
   phone: string
+  age: string
   city: string
   state: string
+  profession: string
   
-  // Period & Health Information
+  // Period Details
   cycle_length: string
-  last_period_date: string
   period_regularity: string
-  previous_pain_management: string
   pain_severity: string
+  previous_pain_management: string
+  what_used_before: string
   
   // Product Experience
   when_tried: string
@@ -32,33 +33,33 @@ interface FeedbackData {
   frequency_of_use: string
   preparation_method: string
   effect_speed: string
+  effect_duration: string
   overall_satisfaction: number
-  would_drink_again: string
+  taste_rating: number
+  packaging_rating: number
+  convenience_rating: number
   benefits_experienced: string[]
   side_effects: string
-  taste_rating: number
-  value_rating: number
-  packaging_rating: number
-  convenience_rating: string
-  storage_experience: string
-  dosage_followed: string
+  before_after_impact: string
   
-  // Lifestyle & Emotional Impact
-  lifestyle_impact: string[]
-  self_care_essentials: string[]
-  current_feeling: string
-  confidence_boost: string
-  
-  // Community & Engagement
-  face_and_soul_campaign: string
-  community_interest: string
+  // Business Insights
+  price_opinion: string
+  would_buy: string
+  recommend_to_others: string
+  social_media_handle: string
   volunteer_interest: string
+  campaign_face_interest: string
   testimonial_permission: string
   
-  // Feedback & Recommendations
+  // Emotional & Lifestyle Impact
+  current_mood: string
+  happiness_factors: string[]
+  confidence_boost: string
+  lifestyle_impact: string[]
+  self_care_essentials: string[]
+  
+  // Additional Feedback
   improvements: string
-  would_recommend: string
-  price_feedback: string
   final_thoughts: string
 }
 
@@ -69,6 +70,7 @@ const AI_ASSISTANT = {
 }
 
 const QUESTIONS = [
+  // Personal Information Section
   {
     id: 1,
     type: 'name',
@@ -89,6 +91,15 @@ const QUESTIONS = [
   },
   {
     id: 3,
+    type: 'phone',
+    title: "What's your phone number? 📱",
+    description: "Optional - for special updates and offers",
+    required: false,
+    placeholder: "+91 98765 43210",
+    emoji: "📱"
+  },
+  {
+    id: 4,
     type: 'age',
     title: "What's your age? 🎂",
     description: "This helps us understand our community better",
@@ -97,7 +108,7 @@ const QUESTIONS = [
     emoji: "🎂"
   },
   {
-    id: 4,
+    id: 5,
     type: 'location',
     title: "Where are you from? 🌍",
     description: "We love connecting with women from all over!",
@@ -106,7 +117,18 @@ const QUESTIONS = [
     emoji: "🌍"
   },
   {
-    id: 5,
+    id: 6,
+    type: 'profession',
+    title: "What do you do? 💼",
+    description: "Optional - helps us understand our diverse community",
+    required: false,
+    placeholder: "e.g., Student, Working Professional, Homemaker",
+    emoji: "💼"
+  },
+  
+  // Period Details Section
+  {
+    id: 7,
     type: 'cycle_info',
     title: "Tell us about your cycle 📅",
     description: "This helps us understand your unique needs",
@@ -115,7 +137,7 @@ const QUESTIONS = [
     emoji: "📅"
   },
   {
-    id: 6,
+    id: 8,
     type: 'pain_severity',
     title: "How severe are your period symptoms? 😰",
     description: "Be honest - we're here to help!",
@@ -124,16 +146,18 @@ const QUESTIONS = [
     emoji: "😰"
   },
   {
-    id: 7,
-    type: 'previous_management',
-    title: "What have you tried before? 💊",
+    id: 9,
+    type: 'what_used_before',
+    title: "What were you using before Period Calm? 💊",
     description: "Understanding your journey helps us improve",
     required: false,
     options: ["Painkillers (Paracetamol/Ibuprofen)", "Hot water bottle", "Exercise", "Diet changes", "Herbal remedies", "Nothing worked", "Other"],
     emoji: "💊"
   },
+  
+  // Product Experience Section
   {
-    id: 8,
+    id: 10,
     type: 'when_tried',
     title: "When did you try Period Calm? ⏰",
     description: "Help us understand your experience timeline",
@@ -142,7 +166,7 @@ const QUESTIONS = [
     emoji: "⏰"
   },
   {
-    id: 9,
+    id: 11,
     type: 'timing_use',
     title: "When did you take Period Calm? 🕐",
     description: "Timing can make a big difference!",
@@ -151,7 +175,7 @@ const QUESTIONS = [
     emoji: "🕐"
   },
   {
-    id: 10,
+    id: 12,
     type: 'effect_speed',
     title: "How quickly did you feel relief? ⚡",
     description: "We want to know about the speed of action",
@@ -160,7 +184,25 @@ const QUESTIONS = [
     emoji: "⚡"
   },
   {
-    id: 11,
+    id: 13,
+    type: 'effect_duration',
+    title: "How long did the relief last? ⏱️",
+    description: "Duration of effectiveness is crucial",
+    required: false,
+    options: ["Less than 2 hours", "2-4 hours", "4-6 hours", "6-8 hours", "More than 8 hours", "All day"],
+    emoji: "⏱️"
+  },
+  {
+    id: 14,
+    type: 'before_after_impact',
+    title: "Compare your before & after experience 📊",
+    description: "How did Period Calm change your period experience?",
+    required: false,
+    options: ["Dramatically better", "Significantly better", "Somewhat better", "Slightly better", "No change", "Worse"],
+    emoji: "📊"
+  },
+  {
+    id: 15,
     type: 'overall_satisfaction',
     title: "🌟 Overall, how satisfied are you?",
     description: "Rate your complete experience with Period Calm",
@@ -169,25 +211,7 @@ const QUESTIONS = [
     emoji: "🌟"
   },
   {
-    id: 12,
-    type: 'benefits_experienced',
-    title: "✨ What magic did you experience?",
-    description: "Select all that apply - every detail matters!",
-    required: false,
-    options: ["Cramp relief", "Mood improvement", "Better sleep", "Energy boost", "Reduced bloating", "Regular cycles", "Less fatigue", "Better focus", "Reduced anxiety", "No benefits"],
-    emoji: "✨"
-  },
-  {
-    id: 13,
-    type: 'lifestyle_impact',
-    title: "🌟 How did Period Calm change your day?",
-    description: "Select all that apply - we love success stories!",
-    required: false,
-    options: ["Could work normally", "Could exercise", "Better sleep quality", "More confident", "Less stress", "Better mood", "Could socialize", "Could focus on tasks", "No change"],
-    emoji: "🌟"
-  },
-  {
-    id: 14,
+    id: 16,
     type: 'taste_rating',
     title: "How would you rate the taste? 🍵",
     description: "We're always working on making it delicious!",
@@ -196,7 +220,7 @@ const QUESTIONS = [
     emoji: "🍵"
   },
   {
-    id: 15,
+    id: 17,
     type: 'packaging_rating',
     title: "How would you rate the packaging? 📦",
     description: "We want to make it as convenient as possible",
@@ -205,7 +229,25 @@ const QUESTIONS = [
     emoji: "📦"
   },
   {
-    id: 16,
+    id: 18,
+    type: 'convenience_rating',
+    title: "How convenient was it to use? 🎯",
+    description: "Ease of preparation and consumption",
+    required: false,
+    options: ["1 - Very inconvenient", "2 - Somewhat inconvenient", "3 - Neutral", "4 - Convenient", "5 - Very convenient"],
+    emoji: "🎯"
+  },
+  {
+    id: 19,
+    type: 'benefits_experienced',
+    title: "✨ What magic did you experience?",
+    description: "Select all that apply - every detail matters!",
+    required: false,
+    options: ["Cramp relief", "Mood improvement", "Better sleep", "Energy boost", "Reduced bloating", "Regular cycles", "Less fatigue", "Better focus", "Reduced anxiety", "No benefits"],
+    emoji: "✨"
+  },
+  {
+    id: 20,
     type: 'side_effects',
     title: "Did you experience any side effects? ⚠️",
     description: "Your safety is our priority",
@@ -213,9 +255,29 @@ const QUESTIONS = [
     options: ["None", "Mild nausea", "Dizziness", "Allergic reaction", "Other", "Prefer not to say"],
     emoji: "⚠️"
   },
+  
+  // Business Insights Section
   {
-    id: 17,
-    type: 'would_recommend',
+    id: 21,
+    type: 'price_opinion',
+    title: "What do you think about the pricing? 💰",
+    description: "We want to make it accessible to everyone",
+    required: false,
+    options: ["Very affordable (₹55)", "Reasonable (₹70)", "Acceptable (₹90)", "A bit expensive (₹120)", "Too expensive", "Not sure"],
+    emoji: "💰"
+  },
+  {
+    id: 22,
+    type: 'would_buy',
+    title: "Would you buy Period Calm? 🛒",
+    description: "Your honest opinion helps us understand demand",
+    required: false,
+    options: ["Yes, definitely!", "Yes, probably", "Maybe", "No, probably not", "No, definitely not"],
+    emoji: "🛒"
+  },
+  {
+    id: 23,
+    type: 'recommend_to_others',
     title: "💝 Would you recommend Period Calm?",
     description: "Your honest opinion helps other women make informed decisions",
     required: true,
@@ -223,16 +285,92 @@ const QUESTIONS = [
     emoji: "💝"
   },
   {
-    id: 18,
-    type: 'price_feedback',
-    title: "What do you think about the pricing? 💰",
-    description: "We want to make it accessible to everyone",
+    id: 24,
+    type: 'social_media_handle',
+    title: "What's your social media handle? 📱",
+    description: "Optional - for community building and updates",
     required: false,
-    options: ["Very affordable", "Reasonable", "A bit expensive", "Too expensive", "Not sure"],
-    emoji: "💰"
+    placeholder: "@yourusername (Instagram/Twitter)",
+    emoji: "📱"
   },
   {
-    id: 19,
+    id: 25,
+    type: 'volunteer_interest',
+    title: "Would you like to be a volunteer? 🤝",
+    description: "Help us spread awareness and support other women",
+    required: false,
+    options: ["Yes, I'm interested!", "Maybe, tell me more", "Not right now", "No, thank you"],
+    emoji: "🤝"
+  },
+  {
+    id: 26,
+    type: 'campaign_face_interest',
+    title: "Would you like to be the face of our campaign? 🌟",
+    description: "Share your story and inspire others",
+    required: false,
+    options: ["Yes, I'd love to!", "Maybe, I'm interested", "Not comfortable", "No, thank you"],
+    emoji: "🌟"
+  },
+  {
+    id: 27,
+    type: 'testimonial_permission',
+    title: "💝 Can we use your feedback?",
+    description: "We'd love to share your story (with your permission)",
+    required: false,
+    options: ["Yes, with my name", "Yes, anonymously", "No, keep it private"],
+    emoji: "💝"
+  },
+  
+  // Emotional & Lifestyle Impact Section
+  {
+    id: 28,
+    type: 'current_mood',
+    title: "How are you feeling right now? 😊",
+    description: "Your emotional well-being matters to us",
+    required: false,
+    options: ["Happy and energetic", "Calm and relaxed", "Neutral", "A bit low", "Stressed", "Other"],
+    emoji: "😊"
+  },
+  {
+    id: 29,
+    type: 'happiness_factors',
+    title: "What makes you feel happy during periods? 🌈",
+    description: "Select all that apply - we want to understand your needs",
+    required: false,
+    options: ["Comfort food", "Rest and relaxation", "Exercise", "Music", "Reading", "Talking to friends", "Self-care rituals", "Nothing really", "Other"],
+    emoji: "🌈"
+  },
+  {
+    id: 30,
+    type: 'confidence_boost',
+    title: "Did Period Calm boost your confidence? 💪",
+    description: "Feeling empowered during your period",
+    required: false,
+    options: ["Yes, significantly", "Yes, somewhat", "A little bit", "No change", "Not sure"],
+    emoji: "💪"
+  },
+  {
+    id: 31,
+    type: 'lifestyle_impact',
+    title: "🌟 How did Period Calm change your day?",
+    description: "Select all that apply - we love success stories!",
+    required: false,
+    options: ["Could work normally", "Could exercise", "Better sleep quality", "More confident", "Less stress", "Better mood", "Could socialize", "Could focus on tasks", "No change"],
+    emoji: "🌟"
+  },
+  {
+    id: 32,
+    type: 'self_care_essentials',
+    title: "What are your period self-care essentials? 🛁",
+    description: "Select all that apply - helps us understand your routine",
+    required: false,
+    options: ["Hot water bottle", "Comfortable clothes", "Healthy food", "Rest", "Exercise", "Meditation", "Reading", "Music", "Nothing specific", "Other"],
+    emoji: "🛁"
+  },
+  
+  // Additional Feedback Section
+  {
+    id: 33,
     type: 'improvements',
     title: "What could we improve? 🔧",
     description: "Your suggestions help us make Period Calm even better",
@@ -241,16 +379,7 @@ const QUESTIONS = [
     emoji: "🔧"
   },
   {
-    id: 20,
-    type: 'testimonial_permission',
-    title: "💝 Can we use your feedback?",
-    description: "We'd love to share your story (with your permission)",
-    required: false,
-    options: ["Yes, with my name", "Yes, anonymously", "No, keep it private"],
-    emoji: "💝"
-  },
-  {
-    id: 21,
+    id: 34,
     type: 'final_thoughts',
     title: "💭 Any final thoughts?",
     description: "Share anything else you'd like us to know",
@@ -266,41 +395,42 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
     first_name: '',
     last_name: '',
     email: '',
-    age: '',
     phone: '',
+    age: '',
     city: '',
     state: '',
+    profession: '',
     cycle_length: '',
-    last_period_date: '',
     period_regularity: '',
-    previous_pain_management: '',
     pain_severity: '',
+    previous_pain_management: '',
+    what_used_before: '',
     when_tried: '',
     timing_of_use: '',
     frequency_of_use: '',
     preparation_method: '',
     effect_speed: '',
+    effect_duration: '',
     overall_satisfaction: 0,
-    would_drink_again: '',
+    taste_rating: 0,
+    packaging_rating: 0,
+    convenience_rating: 0,
     benefits_experienced: [],
     side_effects: '',
-    taste_rating: 0,
-    value_rating: 0,
-    packaging_rating: 0,
-    convenience_rating: '',
-    storage_experience: '',
-    dosage_followed: '',
+    before_after_impact: '',
+    price_opinion: '',
+    would_buy: '',
+    recommend_to_others: '',
+    social_media_handle: '',
+    volunteer_interest: '',
+    campaign_face_interest: '',
+    testimonial_permission: '',
+    current_mood: '',
+    happiness_factors: [],
+    confidence_boost: '',
     lifestyle_impact: [],
     self_care_essentials: [],
-    current_feeling: '',
-    confidence_boost: '',
-    face_and_soul_campaign: '',
-    community_interest: '',
-    volunteer_interest: '',
-    testimonial_permission: '',
     improvements: '',
-    would_recommend: '',
-    price_feedback: '',
     final_thoughts: ''
   })
   const [currentAnswer, setCurrentAnswer] = useState('')
@@ -319,10 +449,11 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
   }
 
   const handleOptionSelect = (option: string) => {
-    if (currentQuestion.type === 'benefits_experienced' || currentQuestion.type === 'lifestyle_impact') {
-      const currentArray = currentQuestion.type === 'benefits_experienced' 
-        ? feedbackData.benefits_experienced 
-        : feedbackData.lifestyle_impact
+    if (currentQuestion.type === 'benefits_experienced' || 
+        currentQuestion.type === 'lifestyle_impact' || 
+        currentQuestion.type === 'happiness_factors' || 
+        currentQuestion.type === 'self_care_essentials') {
+      const currentArray = feedbackData[currentQuestion.type as keyof FeedbackData] as string[]
       
       const newArray = currentArray.includes(option)
         ? currentArray.filter(item => item !== option)
@@ -330,7 +461,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       
       setFeedbackData(prev => ({
         ...prev,
-        [currentQuestion.type === 'benefits_experienced' ? 'benefits_experienced' : 'lifestyle_impact']: newArray
+        [currentQuestion.type]: newArray
       }))
       setCurrentAnswer(option)
     } else {
@@ -354,10 +485,16 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
         }))
       } else if (currentQuestion.type === 'contact') {
         setFeedbackData(prev => ({ ...prev, email: currentAnswer }))
+      } else if (currentQuestion.type === 'phone') {
+        setFeedbackData(prev => ({ ...prev, phone: currentAnswer }))
       } else if (currentQuestion.type === 'age') {
         setFeedbackData(prev => ({ ...prev, age: currentAnswer }))
       } else if (currentQuestion.type === 'location') {
         setFeedbackData(prev => ({ ...prev, city: currentAnswer }))
+      } else if (currentQuestion.type === 'profession') {
+        setFeedbackData(prev => ({ ...prev, profession: currentAnswer }))
+      } else if (currentQuestion.type === 'social_media_handle') {
+        setFeedbackData(prev => ({ ...prev, social_media_handle: currentAnswer }))
       } else if (currentQuestion.type === 'overall_satisfaction') {
         const rating = parseInt(currentAnswer.split(' ')[0])
         setFeedbackData(prev => ({ ...prev, overall_satisfaction: rating }))
@@ -367,6 +504,9 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       } else if (currentQuestion.type === 'packaging_rating') {
         const rating = parseInt(currentAnswer.split(' ')[0])
         setFeedbackData(prev => ({ ...prev, packaging_rating: rating }))
+      } else if (currentQuestion.type === 'convenience_rating') {
+        const rating = parseInt(currentAnswer.split(' ')[0])
+        setFeedbackData(prev => ({ ...prev, convenience_rating: rating }))
       } else if (currentQuestion.type === 'improvements') {
         setFeedbackData(prev => ({ ...prev, improvements: currentAnswer }))
       } else if (currentQuestion.type === 'final_thoughts') {
@@ -397,12 +537,15 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       newAchievements.push('🎯 First Steps - Started your feedback journey!')
     }
     if (step === 10) {
-      newAchievements.push('💪 Halfway Hero - You\'re halfway through!')
+      newAchievements.push('💪 Quarter Champion - You\'re making great progress!')
     }
-    if (step === 15) {
-      newAchievements.push('🌟 Detail Champion - You\'re sharing amazing details!')
+    if (step === 17) {
+      newAchievements.push('🌟 Halfway Hero - You\'re halfway through!')
     }
-    if (step === 20) {
+    if (step === 25) {
+      newAchievements.push('💎 Detail Champion - You\'re sharing amazing details!')
+    }
+    if (step === 30) {
       newAchievements.push('🏆 Almost There - Final stretch!')
     }
     
@@ -450,7 +593,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       if (currentQuestion.type === 'overall_satisfaction') {
         return currentAnswer !== ''
       }
-      if (currentQuestion.type === 'would_recommend') {
+      if (currentQuestion.type === 'recommend_to_others') {
         return currentAnswer !== ''
       }
       return currentAnswer.trim() !== ''
@@ -568,10 +711,13 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
                   key={index}
                   onClick={() => handleOptionSelect(option)}
                   className={`p-4 text-left rounded-lg border-2 transition-all duration-200 ${
-                    (currentQuestion.type === 'benefits_experienced' || currentQuestion.type === 'lifestyle_impact')
-                      ? (feedbackData[currentQuestion.type === 'benefits_experienced' ? 'benefits_experienced' : 'lifestyle_impact'].includes(option)
+                    (currentQuestion.type === 'benefits_experienced' || 
+                     currentQuestion.type === 'lifestyle_impact' || 
+                     currentQuestion.type === 'happiness_factors' || 
+                     currentQuestion.type === 'self_care_essentials')
+                      ? (feedbackData[currentQuestion.type as keyof FeedbackData] as string[]).includes(option)
                           ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50')
+                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
                       : (currentAnswer === option
                           ? 'border-purple-500 bg-purple-50 text-purple-700'
                           : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50')
