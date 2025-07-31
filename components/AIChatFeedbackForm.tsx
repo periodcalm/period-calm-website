@@ -587,11 +587,23 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
     setError(null)
     
     try {
-      // Log the feedback data
-      console.log('Comprehensive feedback submitted:', feedbackData)
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Submit feedback to API
+      const response = await fetch('/api/submit-feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(feedbackData),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit feedback')
+      }
+
+      // Log successful submission
+      console.log('Feedback submitted successfully:', result)
       
       // Show success message
       setShowSuccess(true)
@@ -604,7 +616,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       
     } catch (err) {
       console.error('Error submitting feedback:', err)
-      setError('Something went wrong. Please try again.')
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
