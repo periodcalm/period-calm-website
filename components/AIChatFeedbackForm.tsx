@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Star, X, ArrowLeft, ArrowRight, Trophy, Sparkles, Heart, MessageCircle, ChevronLeft, ChevronRight, CheckCircle, Loader2, Maximize2, Minimize2 } from 'lucide-react'
-import { getSupabaseBrowserClient } from '@/supabase/client'
+
 import ProductQAForm from './ProductQAForm'
 import { useLiveStatsStore } from '@/lib/live-stats-store'
 import { useRouter } from 'next/navigation'
@@ -916,7 +916,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
   const { incrementCustomer, addReview, updateStats, syncWithFeedbackData } = useLiveStatsStore()
   const router = useRouter()
 
-  const supabase = getSupabaseBrowserClient()
+
 
   // Save form progress to localStorage
   const saveFormProgress = useCallback(() => {
