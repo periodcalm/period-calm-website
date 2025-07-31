@@ -1,0 +1,138 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Heart, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Youtube } from "lucide-react"
+import Link from "next/link"
+
+export default function Footer() {
+  return (
+    <footer className="bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
+          {/* Brand Section */}
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center space-x-3">
+              <Heart className="w-8 h-8 text-rose-500" />
+              <span className="text-2xl font-bold">Period Calm</span>
+            </Link>
+            <p className="text-gray-400 leading-relaxed">
+              Empowering women with natural, effective period pain relief. Join thousands who have transformed their
+              monthly experience.
+            </p>
+            <div className="flex space-x-4">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Facebook className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Instagram className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Twitter className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Youtube className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="#product" className="text-gray-400 hover:text-white transition-colors">
+                  Shop Now
+                </Link>
+              </li>
+              <li>
+                <Link href="#benefits" className="text-gray-400 hover:text-white transition-colors">
+                  Benefits
+                </Link>
+              </li>
+              <li>
+                <Link href="#testimonials" className="text-gray-400 hover:text-white transition-colors">
+                  Reviews
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="text-gray-400 hover:text-white transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="/tracker" className="text-gray-400 hover:text-white transition-colors">
+                  Cycle Tracker
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Support</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/faq" className="text-gray-400 hover:text-white transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors">
+                  Contact Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/shipping" className="text-gray-400 hover:text-white transition-colors">
+                  Shipping Info
+                </Link>
+              </li>
+              <li>
+                <Link href="/returns" className="text-gray-400 hover:text-white transition-colors">
+                  Returns
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Stay Updated</h3>
+            <p className="text-gray-400 mb-4">Get period tips, wellness advice, and exclusive offers.</p>
+            <div className="space-y-3">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+              />
+              <Button className="w-full bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600">
+                Subscribe
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-gray-400 text-sm">© 2024 Period Calm. All rights reserved.</div>
+          <div className="flex space-x-6 text-sm text-gray-400 mt-4 md:mt-0">
+            <Link href="/terms" className="hover:text-white transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/cookies" className="hover:text-white transition-colors">
+              Cookie Policy
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}

@@ -1,0 +1,11 @@
+-- create table profiles (
+--   id uuid primary key default uuid_generate_v4(),
+--   name text,
+--   email text unique,
+--   phone text,
+--   address text,
+--   status text,
+--   notes text,
+--   created_at timestamp with time zone default now(),
+--   updated_at timestamp with time zone default now()
+-- );
