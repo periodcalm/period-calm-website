@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCartStore } from "@/lib/cart-store"
-import { useAdminStore } from "@/lib/admin-store"
+// Removed admin-store import - using default product data
 import { useLiveStatsStore } from "@/lib/live-stats-store"
 import { AnimatedCounter } from "@/components/AnimatedCounter"
 import {
@@ -221,11 +221,11 @@ export function ProductShowcase() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
   const { addItem } = useCartStore()
-  const { getMainProduct } = useAdminStore()
+  // Removed admin-store usage - using default product data
   const { stats, syncWithFeedbackData, debugStats, clearStore } = useLiveStatsStore()
 
-  const storeProduct = getMainProduct()
-  const product = storeProduct || defaultProduct
+  // Use default product data since admin store is removed
+  const product = defaultProduct
   
   // Debug: Log current stats
   console.log('🏪 ProductShowcase current stats:', stats)
