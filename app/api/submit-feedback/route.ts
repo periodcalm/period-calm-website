@@ -1,24 +1,10 @@
 import { NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
+import { writeFile, readFile, mkdir } from 'fs/promises'
+import { existsSync } from 'fs'
+import path from 'path'
 
-// Initialize Redis client (with fallback)
-let redis: Redis | null = null
-try {
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-    console.log('✅ Redis client initialized successfully')
-  } else {
-    console.log('⚠️ Redis environment variables not found, using fallback storage')
-  }
-} catch (error) {
-  console.log('⚠️ Failed to initialize Redis, using fallback storage:', error)
-}
-
-// Fallback in-memory storage (temporary until Redis is set up)
-let fallbackSubmissions: any[] = []
+// Simple JSON file storage
+const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
 
 export async function POST(request: Request) {
   try {
@@ -47,60 +33,61 @@ export async function POST(request: Request) {
     
     console.log('Prepared submission:', submission)
     
-    // Get existing submissions
-    let submissions: any[] = []
+    // Ensure data directory exists
+    const dataDir = path.dirname(DATA_FILE)
+    console.log('Data directory path:', dataDir)
+    console.log('Data file path:', DATA_FILE)
     
-    if (redis) {
-      // Try Redis first
-      try {
-        const existingData = await redis.get('feedback-submissions')
-        if (existingData) {
-          submissions = existingData as any[]
-          console.log('Loaded', submissions.length, 'existing submissions from Redis')
-        } else {
-          console.log('No existing data in Redis, starting fresh')
-        }
-      } catch (redisReadError) {
-        console.error('Error reading from Redis:', redisReadError)
-        console.log('Falling back to in-memory storage')
-        submissions = [...fallbackSubmissions]
+    try {
+      if (!existsSync(dataDir)) {
+        console.log('Creating data directory...')
+        await mkdir(dataDir, { recursive: true })
+        console.log('Data directory created successfully')
       }
-    } else {
-      // Use fallback storage
-      submissions = [...fallbackSubmissions]
-      console.log('Using fallback storage, current submissions:', submissions.length)
+    } catch (dirError) {
+      console.error('Error creating data directory:', dirError)
+      // Continue anyway, might be a permission issue
+    }
+    
+    // Read existing submissions
+    let submissions = []
+    try {
+      if (existsSync(DATA_FILE)) {
+        console.log('Reading existing data file...')
+        const fileContent = await readFile(DATA_FILE, 'utf-8')
+        submissions = JSON.parse(fileContent)
+        console.log('Successfully read', submissions.length, 'existing submissions')
+      } else {
+        console.log('No existing data file found, starting fresh')
+      }
+    } catch (readError) {
+      console.error('Error reading existing data:', readError)
+      console.log('Starting with empty submissions array')
+      submissions = []
     }
     
     // Add new submission
     submissions.push(submission)
     console.log('Added submission to array. Total submissions:', submissions.length)
     
-    // Save data
-    if (redis) {
-      try {
-        console.log('Saving data to Redis...')
-        await redis.set('feedback-submissions', submissions)
-        console.log('Successfully saved data to Redis')
-        
-        // Also update fallback for consistency
-        fallbackSubmissions = [...submissions]
-      } catch (redisWriteError) {
-        console.error('Error writing to Redis:', redisWriteError)
-        console.log('Falling back to in-memory storage')
-        fallbackSubmissions = [...submissions]
-      }
-    } else {
-      // Use fallback storage
-      fallbackSubmissions = [...submissions]
-      console.log('Saved to fallback storage')
+    // Write back to file
+    try {
+      console.log('Writing data to file...')
+      await writeFile(DATA_FILE, JSON.stringify(submissions, null, 2))
+      console.log('Successfully wrote data to file')
+    } catch (writeError) {
+      console.error('Error writing to file:', writeError)
+      return NextResponse.json(
+        { error: 'Failed to save data - file system error' },
+        { status: 500 }
+      )
     }
     
     return NextResponse.json({
       success: true,
       message: 'Feedback submitted successfully!',
       data: submission,
-      totalSubmissions: submissions.length,
-      storage: redis ? 'redis' : 'fallback'
+      totalSubmissions: submissions.length
     })
     
   } catch (err) {

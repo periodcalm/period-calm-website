@@ -1,53 +1,38 @@
 import { NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
+import { readFile } from 'fs/promises'
+import { existsSync } from 'fs'
+import path from 'path'
 
-// Initialize Redis client (with fallback)
-let redis: Redis | null = null
-try {
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-    console.log('✅ Analytics: Redis client initialized successfully')
-  } else {
-    console.log('⚠️ Analytics: Redis environment variables not found, using fallback storage')
-  }
-} catch (error) {
-  console.log('⚠️ Analytics: Failed to initialize Redis, using fallback storage:', error)
-}
-
-// Fallback in-memory storage (temporary until Redis is set up)
-let fallbackSubmissions: any[] = []
+// Simple JSON file storage
+const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
 
 export async function GET() {
   try {
     console.log('=== SIMPLE ANALYTICS API ===')
     
-    // Get submissions
-    let submissions: any[] = []
-    
-    if (redis) {
-      // Try Redis first
-      try {
-        const existingData = await redis.get('feedback-submissions')
-        if (existingData) {
-          submissions = existingData as any[]
-          console.log('Analytics: Loaded', submissions.length, 'submissions from Redis')
-        } else {
-          console.log('Analytics: No data in Redis, using fallback')
-          submissions = [...fallbackSubmissions]
+    // Check if data file exists
+    if (!existsSync(DATA_FILE)) {
+      console.log('No data file found, returning empty analytics')
+      return NextResponse.json({
+        success: true,
+        data: {
+          totalSubmissions: 0,
+          averageSatisfaction: 0,
+          averageTasteRating: 0,
+          averageValueRating: 0,
+          averagePackagingRating: 0,
+          recommendationRate: 0,
+          recentSubmissions: [],
+          submissions: []
         }
-      } catch (redisError) {
-        console.error('Analytics: Error reading from Redis:', redisError)
-        console.log('Analytics: Falling back to in-memory storage')
-        submissions = [...fallbackSubmissions]
-      }
-    } else {
-      // Use fallback storage
-      submissions = [...fallbackSubmissions]
-      console.log('Analytics: Using fallback storage, submissions:', submissions.length)
+      })
     }
+    
+    // Read submissions from file
+    const fileContent = await readFile(DATA_FILE, 'utf-8')
+    const submissions = JSON.parse(fileContent)
+    
+    console.log('Loaded submissions:', submissions.length)
     
     if (submissions.length === 0) {
       return NextResponse.json({

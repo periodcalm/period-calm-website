@@ -1,53 +1,29 @@
 import { NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
+import { readFile } from 'fs/promises'
+import { existsSync } from 'fs'
+import path from 'path'
 
-// Initialize Redis client (with fallback)
-let redis: Redis | null = null
-try {
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-    console.log('✅ Export: Redis client initialized successfully')
-  } else {
-    console.log('⚠️ Export: Redis environment variables not found, using fallback storage')
-  }
-} catch (error) {
-  console.log('⚠️ Export: Failed to initialize Redis, using fallback storage:', error)
-}
-
-// Fallback in-memory storage (temporary until Redis is set up)
-let fallbackSubmissions: any[] = []
+// Simple JSON file storage
+const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
 
 export async function GET() {
   try {
     console.log('=== EXPORT FEEDBACK API ===')
     
-    // Get submissions
-    let submissions: any[] = []
-    
-    if (redis) {
-      // Try Redis first
-      try {
-        const existingData = await redis.get('feedback-submissions')
-        if (existingData) {
-          submissions = existingData as any[]
-          console.log('Export: Loaded', submissions.length, 'submissions from Redis')
-        } else {
-          console.log('Export: No data in Redis, using fallback')
-          submissions = [...fallbackSubmissions]
-        }
-      } catch (redisError) {
-        console.error('Export: Error reading from Redis:', redisError)
-        console.log('Export: Falling back to in-memory storage')
-        submissions = [...fallbackSubmissions]
-      }
-    } else {
-      // Use fallback storage
-      submissions = [...fallbackSubmissions]
-      console.log('Export: Using fallback storage, submissions:', submissions.length)
+    // Check if data file exists
+    if (!existsSync(DATA_FILE)) {
+      console.log('No data file found, returning empty export')
+      return NextResponse.json({
+        success: false,
+        message: 'No feedback data available to export'
+      })
     }
+    
+    // Read submissions from file
+    const fileContent = await readFile(DATA_FILE, 'utf-8')
+    const submissions = JSON.parse(fileContent)
+    
+    console.log('Export: Loaded', submissions.length, 'submissions from file')
     
     if (submissions.length === 0) {
       return NextResponse.json({
