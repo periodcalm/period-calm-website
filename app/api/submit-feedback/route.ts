@@ -4,6 +4,11 @@ import { supabaseServer } from '@/supabase/server'
 export async function POST(request: Request) {
   try {
     console.log('=== SUPABASE FEEDBACK SUBMISSION API ===')
+    console.log('Environment check:', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...'
+    })
     
     // Parse request body
     const body = await request.json()
@@ -32,6 +37,15 @@ export async function POST(request: Request) {
       .from('feedback_submissions')
       .insert([submission])
       .select()
+    
+    console.log('Supabase insert result:', {
+      hasData: !!data,
+      dataLength: data?.length || 0,
+      hasError: !!error,
+      error: error?.message,
+      errorDetails: error?.details,
+      errorHint: error?.hint
+    })
     
     if (error) {
       console.error('Supabase insert error:', error)

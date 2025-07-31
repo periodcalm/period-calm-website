@@ -10,15 +10,58 @@ export async function GET() {
       url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...'
     })
     
-    // Get all submissions from Supabase
-    const { data: submissions, error } = await supabaseServer
-      .from('feedback_submissions')
+    // First, let's check what tables exist
+    const { data: tables, error: tablesError } = await supabaseServer
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+    
+    console.log('Available tables:', tables)
+    
+    // Try different possible table names
+    const possibleTableNames = [
+      'feedback_submissions',
+      'feedback',
+      'submissions',
+      'user_feedback',
+      'period_calm_feedback'
+    ]
+    
+    let submissions = null
+    let tableName = null
+    
+    for (const name of possibleTableNames) {
+      try {
+        const { data, error } = await supabaseServer
+          .from(name)
+          .select('*')
+          .limit(1)
+        
+        if (!error && data) {
+          console.log(`Found data in table: ${name}`)
+          tableName = name
+          break
+        }
+      } catch (err) {
+        console.log(`Table ${name} not accessible:`, err)
+      }
+    }
+    
+    if (!tableName) {
+      console.log('No accessible table found, trying feedback_submissions')
+      tableName = 'feedback_submissions'
+    }
+    
+    // Get all submissions from the found table
+    const { data: submissionsData, error } = await supabaseServer
+      .from(tableName)
       .select('*')
       .order('submitted_at', { ascending: false })
     
     console.log('Supabase query result:', {
-      hasData: !!submissions,
-      dataLength: submissions?.length || 0,
+      tableName,
+      hasData: !!submissionsData,
+      dataLength: submissionsData?.length || 0,
       hasError: !!error,
       error: error?.message
     })
@@ -40,6 +83,7 @@ export async function GET() {
       })
     }
     
+    submissions = submissionsData
     console.log('Loaded submissions from Supabase:', submissions?.length || 0)
     if (submissions && submissions.length > 0) {
       console.log('Sample submission:', submissions[0])
