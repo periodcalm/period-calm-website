@@ -83,10 +83,54 @@ export async function GET() {
       })
     }
     
-    submissions = submissionsData
-    console.log('Loaded submissions from Supabase:', submissions?.length || 0)
+    // Process submissions to ensure array fields are properly handled
+    submissions = submissionsData?.map((sub: any) => {
+      // Ensure benefits_experienced is always an array
+      if (sub.benefits_experienced && !Array.isArray(sub.benefits_experienced)) {
+        // If it's a string, try to parse it as JSON
+        try {
+          sub.benefits_experienced = JSON.parse(sub.benefits_experienced)
+        } catch {
+          // If parsing fails, split by comma or treat as single item
+          sub.benefits_experienced = sub.benefits_experienced.split(',').map((s: string) => s.trim()).filter(Boolean)
+        }
+      }
+      
+      // Ensure lifestyle_impact is always an array
+      if (sub.lifestyle_impact && !Array.isArray(sub.lifestyle_impact)) {
+        try {
+          sub.lifestyle_impact = JSON.parse(sub.lifestyle_impact)
+        } catch {
+          sub.lifestyle_impact = sub.lifestyle_impact.split(',').map((s: string) => s.trim()).filter(Boolean)
+        }
+      }
+      
+      // Ensure self_care_essentials is always an array
+      if (sub.self_care_essentials && !Array.isArray(sub.self_care_essentials)) {
+        try {
+          sub.self_care_essentials = JSON.parse(sub.self_care_essentials)
+        } catch {
+          sub.self_care_essentials = sub.self_care_essentials.split(',').map((s: string) => s.trim()).filter(Boolean)
+        }
+      }
+      
+      // Ensure numeric fields are numbers
+      sub.overall_satisfaction = Number(sub.overall_satisfaction) || 0
+      sub.taste_rating = Number(sub.taste_rating) || 0
+      sub.value_rating = Number(sub.value_rating) || 0
+      sub.packaging_rating = Number(sub.packaging_rating) || 0
+      
+      return sub
+    }) || []
+    
+    console.log('Loaded and processed submissions from Supabase:', submissions?.length || 0)
     if (submissions && submissions.length > 0) {
-      console.log('Sample submission:', submissions[0])
+      console.log('Sample processed submission:', {
+        id: submissions[0].id,
+        benefits_experienced: submissions[0].benefits_experienced,
+        benefits_type: typeof submissions[0].benefits_experienced,
+        is_array: Array.isArray(submissions[0].benefits_experienced)
+      })
     }
     
     if (!submissions || submissions.length === 0) {

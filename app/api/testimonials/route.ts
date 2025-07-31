@@ -1,29 +1,63 @@
 import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-// Simple JSON file storage
-const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
+import { supabaseServer } from '@/supabase/server'
 
 export async function GET() {
   try {
-    console.log('=== ENHANCED TESTIMONIALS API ===')
+    console.log('=== SUPABASE TESTIMONIALS API ===')
+    console.log('Environment check:', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...'
+    })
     
-    // Check if data file exists
-    if (!existsSync(DATA_FILE)) {
-      console.log('No data file found, returning empty testimonials')
+    // Get submissions from Supabase
+    const { data: submissionsData, error } = await supabaseServer
+      .from('feedback_submissions')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+    
+    console.log('Supabase testimonials query result:', {
+      hasData: !!submissionsData,
+      dataLength: submissionsData?.length || 0,
+      hasError: !!error,
+      error: error?.message
+    })
+    
+    if (error) {
+      console.error('Supabase query error:', error)
       return NextResponse.json({
         success: true,
         data: []
       })
     }
     
-    // Read submissions from file
-    const fileContent = await readFile(DATA_FILE, 'utf-8')
-    const submissions = JSON.parse(fileContent)
+    // Process submissions to ensure array fields are properly handled
+    const submissions = submissionsData?.map((sub: any) => {
+      // Ensure benefits_experienced is always an array
+      if (sub.benefits_experienced && !Array.isArray(sub.benefits_experienced)) {
+        try {
+          sub.benefits_experienced = JSON.parse(sub.benefits_experienced)
+        } catch {
+          sub.benefits_experienced = sub.benefits_experienced.split(',').map((s: string) => s.trim()).filter(Boolean)
+        }
+      }
+      
+      // Ensure lifestyle_impact is always an array
+      if (sub.lifestyle_impact && !Array.isArray(sub.lifestyle_impact)) {
+        try {
+          sub.lifestyle_impact = JSON.parse(sub.lifestyle_impact)
+        } catch {
+          sub.lifestyle_impact = sub.lifestyle_impact.split(',').map((s: string) => s.trim()).filter(Boolean)
+        }
+      }
+      
+      // Ensure numeric fields are numbers
+      sub.overall_satisfaction = Number(sub.overall_satisfaction) || 0
+      
+      return sub
+    }) || []
     
-    console.log('Loaded submissions for testimonials:', submissions.length)
+    console.log('Loaded and processed submissions for testimonials:', submissions.length)
     
     if (submissions.length === 0) {
       return NextResponse.json({
