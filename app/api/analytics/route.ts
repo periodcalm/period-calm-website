@@ -1,30 +1,38 @@
 import { NextResponse } from 'next/server'
+import { readFile } from 'fs/promises'
+import { existsSync } from 'fs'
+import path from 'path'
 
-// In-memory storage for serverless environment
-let submissions: any[] = []
-
-// Try to load existing data from file (read-only)
-try {
-  const fs = require('fs')
-  const path = require('path')
-  const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
-  
-  if (fs.existsSync(DATA_FILE)) {
-    const fileContent = fs.readFileSync(DATA_FILE, 'utf-8')
-    submissions = JSON.parse(fileContent)
-    console.log('Analytics: Loaded', submissions.length, 'existing submissions from file')
-  }
-} catch (error) {
-  console.log('Analytics: Could not load existing data, starting fresh:', error)
-  submissions = []
-}
+// Simple JSON file storage
+const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
 
 export async function GET() {
   try {
     console.log('=== SIMPLE ANALYTICS API ===')
     
-    // Use in-memory submissions array (already loaded at module level)
-    console.log('Analytics: Current submissions in memory:', submissions.length)
+    // Check if data file exists
+    if (!existsSync(DATA_FILE)) {
+      console.log('No data file found, returning empty analytics')
+      return NextResponse.json({
+        success: true,
+        data: {
+          totalSubmissions: 0,
+          averageSatisfaction: 0,
+          averageTasteRating: 0,
+          averageValueRating: 0,
+          averagePackagingRating: 0,
+          recommendationRate: 0,
+          recentSubmissions: [],
+          submissions: []
+        }
+      })
+    }
+    
+    // Read submissions from file
+    const fileContent = await readFile(DATA_FILE, 'utf-8')
+    const submissions = JSON.parse(fileContent)
+    
+    console.log('Loaded submissions:', submissions.length)
     
     if (submissions.length === 0) {
       return NextResponse.json({
@@ -35,6 +43,7 @@ export async function GET() {
           averageTasteRating: 0,
           averageValueRating: 0,
           averagePackagingRating: 0,
+          recommendationRate: 0,
           recentSubmissions: [],
           submissions: []
         }

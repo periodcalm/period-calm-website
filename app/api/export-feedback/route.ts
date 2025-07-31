@@ -1,30 +1,29 @@
 import { NextResponse } from 'next/server'
+import { readFile } from 'fs/promises'
+import { existsSync } from 'fs'
+import path from 'path'
 
-// In-memory storage for serverless environment
-let submissions: any[] = []
-
-// Try to load existing data from file (read-only)
-try {
-  const fs = require('fs')
-  const path = require('path')
-  const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
-  
-  if (fs.existsSync(DATA_FILE)) {
-    const fileContent = fs.readFileSync(DATA_FILE, 'utf-8')
-    submissions = JSON.parse(fileContent)
-    console.log('Export: Loaded', submissions.length, 'existing submissions from file')
-  }
-} catch (error) {
-  console.log('Export: Could not load existing data, starting fresh:', error)
-  submissions = []
-}
+// Simple JSON file storage
+const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
 
 export async function GET() {
   try {
     console.log('=== EXPORT FEEDBACK API ===')
     
-    // Use in-memory submissions array
-    console.log('Export: Current submissions in memory:', submissions.length)
+    // Check if data file exists
+    if (!existsSync(DATA_FILE)) {
+      console.log('No data file found, returning empty export')
+      return NextResponse.json({
+        success: false,
+        message: 'No feedback data available to export'
+      })
+    }
+    
+    // Read submissions from file
+    const fileContent = await readFile(DATA_FILE, 'utf-8')
+    const submissions = JSON.parse(fileContent)
+    
+    console.log('Export: Loaded', submissions.length, 'submissions from file')
     
     if (submissions.length === 0) {
       return NextResponse.json({

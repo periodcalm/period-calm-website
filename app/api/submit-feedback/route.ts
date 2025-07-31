@@ -1,23 +1,10 @@
 import { NextResponse } from 'next/server'
+import { writeFile, readFile, mkdir } from 'fs/promises'
+import { existsSync } from 'fs'
+import path from 'path'
 
-// In-memory storage for serverless environment
-let submissions: any[] = []
-
-// Try to load existing data from file (read-only)
-try {
-  const fs = require('fs')
-  const path = require('path')
-  const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
-  
-  if (fs.existsSync(DATA_FILE)) {
-    const fileContent = fs.readFileSync(DATA_FILE, 'utf-8')
-    submissions = JSON.parse(fileContent)
-    console.log('Loaded', submissions.length, 'existing submissions from file')
-  }
-} catch (error) {
-  console.log('Could not load existing data, starting fresh:', error)
-  submissions = []
-}
+// Simple JSON file storage
+const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
 
 export async function POST(request: Request) {
   try {
@@ -46,15 +33,56 @@ export async function POST(request: Request) {
     
     console.log('Prepared submission:', submission)
     
-    // Use in-memory submissions array (already loaded at module level)
-    console.log('Current submissions in memory:', submissions.length)
+    // Ensure data directory exists
+    const dataDir = path.dirname(DATA_FILE)
+    console.log('Data directory path:', dataDir)
+    console.log('Data file path:', DATA_FILE)
     
-    // Add new submission to in-memory array
+    try {
+      if (!existsSync(dataDir)) {
+        console.log('Creating data directory...')
+        await mkdir(dataDir, { recursive: true })
+        console.log('Data directory created successfully')
+      }
+    } catch (dirError) {
+      console.error('Error creating data directory:', dirError)
+      // Continue anyway, might be a permission issue
+    }
+    
+    // Read existing submissions
+    let submissions = []
+    try {
+      if (existsSync(DATA_FILE)) {
+        console.log('Reading existing data file...')
+        const fileContent = await readFile(DATA_FILE, 'utf-8')
+        submissions = JSON.parse(fileContent)
+        console.log('Successfully read', submissions.length, 'existing submissions')
+      } else {
+        console.log('No existing data file found, starting fresh')
+      }
+    } catch (readError) {
+      console.error('Error reading existing data:', readError)
+      console.log('Starting with empty submissions array')
+      submissions = []
+    }
+    
+    // Add new submission
     submissions.push(submission)
-    console.log('Added submission to memory. Total submissions:', submissions.length)
+    console.log('Added submission to array. Total submissions:', submissions.length)
     
-    // Note: In serverless environment, data persists only during function execution
-    // For production, consider using a database like Supabase, MongoDB, or Vercel KV
+    // Write back to file - this is crucial for persistence
+    try {
+      console.log('Writing data to file...')
+      await writeFile(DATA_FILE, JSON.stringify(submissions, null, 2))
+      console.log('Successfully wrote data to file')
+    } catch (writeError) {
+      console.error('Error writing to file:', writeError)
+      // This is critical - if we can't write, the data won't persist
+      return NextResponse.json(
+        { error: 'Failed to save data - serverless environment limitation' },
+        { status: 500 }
+      )
+    }
     
     return NextResponse.json({
       success: true,
