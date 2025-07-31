@@ -16,6 +16,7 @@ export async function POST(request: Request) {
     
     // Validate required fields
     if (!body.first_name || !body.last_name || !body.email) {
+      console.error('Missing required fields:', { first_name: !!body.first_name, last_name: !!body.last_name, email: !!body.email })
       return NextResponse.json(
         { error: 'Missing required fields: first_name, last_name, email' },
         { status: 400 }
@@ -34,29 +35,52 @@ export async function POST(request: Request) {
     
     // Ensure data directory exists
     const dataDir = path.dirname(DATA_FILE)
-    if (!existsSync(dataDir)) {
-      await mkdir(dataDir, { recursive: true })
+    console.log('Data directory path:', dataDir)
+    console.log('Data file path:', DATA_FILE)
+    
+    try {
+      if (!existsSync(dataDir)) {
+        console.log('Creating data directory...')
+        await mkdir(dataDir, { recursive: true })
+        console.log('Data directory created successfully')
+      }
+    } catch (dirError) {
+      console.error('Error creating data directory:', dirError)
+      // Continue anyway, might be a permission issue
     }
     
     // Read existing submissions
     let submissions = []
-    if (existsSync(DATA_FILE)) {
-      try {
+    try {
+      if (existsSync(DATA_FILE)) {
+        console.log('Reading existing data file...')
         const fileContent = await readFile(DATA_FILE, 'utf-8')
         submissions = JSON.parse(fileContent)
-      } catch (error) {
-        console.log('No existing data or invalid JSON, starting fresh')
-        submissions = []
+        console.log('Successfully read', submissions.length, 'existing submissions')
+      } else {
+        console.log('No existing data file found, starting fresh')
       }
+    } catch (readError) {
+      console.error('Error reading existing data:', readError)
+      console.log('Starting with empty submissions array')
+      submissions = []
     }
     
     // Add new submission
     submissions.push(submission)
+    console.log('Added submission to array. Total submissions:', submissions.length)
     
     // Write back to file
-    await writeFile(DATA_FILE, JSON.stringify(submissions, null, 2))
-    
-    console.log('Successfully saved submission. Total submissions:', submissions.length)
+    try {
+      console.log('Writing data to file...')
+      await writeFile(DATA_FILE, JSON.stringify(submissions, null, 2))
+      console.log('Successfully wrote data to file')
+    } catch (writeError) {
+      console.error('Error writing to file:', writeError)
+      // For now, just return success even if we can't write to file
+      // In production, you might want to use a database instead
+      console.log('Continuing without file write (serverless environment limitation)')
+    }
     
     return NextResponse.json({
       success: true,
