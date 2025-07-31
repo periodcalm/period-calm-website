@@ -31,11 +31,11 @@ export async function POST(request: Request) {
       lifestyle_impact: Array.isArray(body.lifestyle_impact) ? body.lifestyle_impact : [],
       self_care_essentials: Array.isArray(body.self_care_essentials) ? body.self_care_essentials : [],
       
-      // Ensure numeric fields are numbers
-      overall_satisfaction: Number(body.overall_satisfaction) || 0,
-      taste_rating: Number(body.taste_rating) || 0,
-      value_rating: Number(body.value_rating) || 0,
-      packaging_rating: Number(body.packaging_rating) || 0,
+      // Ensure numeric fields are numbers (handle empty strings)
+      overall_satisfaction: body.overall_satisfaction === '' ? 0 : Number(body.overall_satisfaction) || 0,
+      taste_rating: body.taste_rating === '' ? 0 : Number(body.taste_rating) || 0,
+      value_rating: body.value_rating === '' ? 0 : Number(body.value_rating) || 0,
+      packaging_rating: body.packaging_rating === '' ? 0 : Number(body.packaging_rating) || 0,
       
       // Ensure string fields are strings
       first_name: String(body.first_name || ''),
@@ -86,7 +86,27 @@ export async function POST(request: Request) {
       benefits_type: typeof submission.benefits_experienced,
       is_array: Array.isArray(submission.benefits_experienced),
       overall_satisfaction: submission.overall_satisfaction,
-      satisfaction_type: typeof submission.overall_satisfaction
+      satisfaction_type: typeof submission.overall_satisfaction,
+      taste_rating: submission.taste_rating,
+      value_rating: submission.value_rating,
+      packaging_rating: submission.packaging_rating
+    })
+    
+    // Log all numeric fields to identify the problematic one
+    const numericFields = {
+      overall_satisfaction: submission.overall_satisfaction,
+      taste_rating: submission.taste_rating,
+      value_rating: submission.value_rating,
+      packaging_rating: submission.packaging_rating
+    }
+    
+    console.log('Numeric fields check:', numericFields)
+    
+    // Check for any empty strings in numeric fields
+    Object.entries(numericFields).forEach(([field, value]) => {
+      if (value === '') {
+        console.error(`⚠️ Empty string found in numeric field: ${field}`)
+      }
     })
     
     // Insert into Supabase
