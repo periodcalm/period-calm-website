@@ -566,85 +566,37 @@ export default function AnalyticsPage() {
     }
   }
 
-  const exportData = () => {
-    if (!filteredData.length) {
-      alert('No data to export')
-      return
+  const exportData = async () => {
+    try {
+      console.log('Exporting data...')
+      const response = await fetch('/api/export-feedback')
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        alert(`Export failed: ${errorData.message || 'Unknown error'}`)
+        return
+      }
+      
+      // Get the filename from the response headers
+      const contentDisposition = response.headers.get('content-disposition')
+      const filename = contentDisposition?.split('filename=')[1]?.replace(/"/g, '') || `period-calm-feedback-${new Date().toISOString().split('T')[0]}.csv`
+      
+      // Create blob and download
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      console.log('Export completed successfully')
+    } catch (error) {
+      console.error('Export error:', error)
+      alert('Failed to export data. Please try again.')
     }
-
-    const headers = [
-      'ID', 'First Name', 'Last Name', 'Age', 'Email', 'Phone', 'City', 'State', 'Instagram',
-      'Cycle Length', 'Last Period Date', 'Period Regularity', 'Previous Pain Management',
-      'Pain Severity', 'When Tried', 'Timing of Use', 'Frequency of Use', 'Preparation Method',
-      'Effect Speed', 'Overall Satisfaction', 'Would Drink Again', 'Benefits Experienced',
-      'Side Effects', 'Taste Rating', 'Value Rating', 'Packaging Rating', 'Convenience Rating',
-      'Storage Experience', 'Dosage Followed', 'Budget Range', 'Price Points', 'Purchase Intent',
-      'Lifestyle Impact', 'Self Care Essentials', 'Current Feeling', 'Confidence Boost',
-      'Face and Soul Campaign', 'Community Interest', 'Volunteer Interest', 'Testimonial Permission',
-      'Improvements', 'Would Recommend', 'Price Feedback', 'Final Thoughts', 'Submitted At', 'Source'
-    ]
-
-    const csvContent = [
-      headers.join(','),
-      ...filteredData.map(sub => [
-        sub.id,
-        `"${sub.first_name}"`,
-        `"${sub.last_name}"`,
-        sub.age || '',
-        `"${sub.email}"`,
-        sub.phone || '',
-        `"${sub.city || ''}"`,
-        `"${sub.state || ''}"`,
-        `"${sub.instagram || ''}"`,
-        `"${sub.cycle_length || ''}"`,
-        `"${sub.last_period_date || ''}"`,
-        `"${sub.period_regularity || ''}"`,
-        `"${sub.previous_pain_management || ''}"`,
-        `"${sub.pain_severity || ''}"`,
-        `"${sub.when_tried || ''}"`,
-        `"${sub.timing_of_use || ''}"`,
-        `"${sub.frequency_of_use || ''}"`,
-        `"${sub.preparation_method || ''}"`,
-        `"${sub.effect_speed || ''}"`,
-        sub.overall_satisfaction,
-        `"${sub.would_drink_again || ''}"`,
-        `"${(sub.benefits_experienced || []).join('; ')}"`,
-        `"${sub.side_effects || ''}"`,
-        sub.taste_rating,
-        sub.value_rating,
-        sub.packaging_rating,
-        `"${sub.convenience_rating || ''}"`,
-        `"${sub.storage_experience || ''}"`,
-        `"${sub.dosage_followed || ''}"`,
-        `"${sub.budget_range || ''}"`,
-        `"${sub.price_points || ''}"`,
-        `"${sub.purchase_intent || ''}"`,
-        `"${(sub.lifestyle_impact || []).join('; ')}"`,
-        `"${(sub.self_care_essentials || []).join('; ')}"`,
-        `"${sub.current_feeling || ''}"`,
-        `"${sub.confidence_boost || ''}"`,
-        `"${sub.face_and_soul_campaign || ''}"`,
-        `"${sub.community_interest || ''}"`,
-        `"${sub.volunteer_interest || ''}"`,
-        `"${sub.testimonial_permission || ''}"`,
-        `"${sub.improvements || ''}"`,
-        `"${sub.would_recommend || ''}"`,
-        `"${sub.price_feedback || ''}"`,
-        `"${sub.final_thoughts || ''}"`,
-        sub.submitted_at,
-        sub.source
-      ].join(','))
-    ].join('\n')
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `analytics-export-${new Date().toISOString().split('T')[0]}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
   }
 
   // Password Protection Screen
