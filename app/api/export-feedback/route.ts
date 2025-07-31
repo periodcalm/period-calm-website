@@ -1,31 +1,27 @@
 import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-// Simple JSON file storage
-const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
+import { supabaseServer } from '@/supabase/server'
 
 export async function GET() {
   try {
-    console.log('=== EXPORT FEEDBACK API ===')
+    console.log('=== SUPABASE EXPORT FEEDBACK API ===')
     
-    // Check if data file exists
-    if (!existsSync(DATA_FILE)) {
-      console.log('No data file found, returning empty export')
+    // Get all submissions from Supabase
+    const { data: submissions, error } = await supabaseServer
+      .from('feedback_submissions')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+    
+    if (error) {
+      console.error('Supabase query error:', error)
       return NextResponse.json({
         success: false,
-        message: 'No feedback data available to export'
+        message: 'Failed to fetch feedback data from database'
       })
     }
     
-    // Read submissions from file
-    const fileContent = await readFile(DATA_FILE, 'utf-8')
-    const submissions = JSON.parse(fileContent)
+    console.log('Export: Loaded', submissions?.length || 0, 'submissions from Supabase')
     
-    console.log('Export: Loaded', submissions.length, 'submissions from file')
-    
-    if (submissions.length === 0) {
+    if (!submissions || submissions.length === 0) {
       return NextResponse.json({
         success: false,
         message: 'No feedback data available to export'

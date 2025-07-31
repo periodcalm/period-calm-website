@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-// Simple JSON file storage
-const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
+import { supabaseServer } from '@/supabase/server'
 
 export async function GET() {
   try {
-    console.log('=== SIMPLE ANALYTICS API ===')
+    console.log('=== SUPABASE ANALYTICS API ===')
     
-    // Check if data file exists
-    if (!existsSync(DATA_FILE)) {
-      console.log('No data file found, returning empty analytics')
+    // Get all submissions from Supabase
+    const { data: submissions, error } = await supabaseServer
+      .from('feedback_submissions')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+    
+    if (error) {
+      console.error('Supabase query error:', error)
       return NextResponse.json({
         success: true,
         data: {
@@ -28,13 +28,9 @@ export async function GET() {
       })
     }
     
-    // Read submissions from file
-    const fileContent = await readFile(DATA_FILE, 'utf-8')
-    const submissions = JSON.parse(fileContent)
+    console.log('Loaded submissions from Supabase:', submissions?.length || 0)
     
-    console.log('Loaded submissions:', submissions.length)
-    
-    if (submissions.length === 0) {
+    if (!submissions || submissions.length === 0) {
       return NextResponse.json({
         success: true,
         data: {
@@ -97,7 +93,7 @@ export async function GET() {
       averageValueRating: totalSubmissions > 0 ? Math.round(totalValueRating / totalSubmissions * 10) / 10 : 0,
       averagePackagingRating: totalSubmissions > 0 ? Math.round(totalPackagingRating / totalSubmissions * 10) / 10 : 0,
       recommendationRate,
-      recentSubmissions: submissions.slice(-10).reverse(), // Last 10, newest first
+      recentSubmissions: submissions.slice(0, 10), // First 10 (already ordered by newest first)
       submissions: submissions
     }
     

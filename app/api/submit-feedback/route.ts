@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server'
-import { writeFile, readFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-// Simple JSON file storage
-const DATA_FILE = path.join(process.cwd(), 'data', 'feedback-submissions.json')
+import { supabaseServer } from '@/supabase/server'
 
 export async function POST(request: Request) {
   try {
-    console.log('=== SIMPLE FEEDBACK SUBMISSION API ===')
+    console.log('=== SUPABASE FEEDBACK SUBMISSION API ===')
     
     // Parse request body
     const body = await request.json()
@@ -25,7 +20,6 @@ export async function POST(request: Request) {
     
     // Prepare submission data
     const submission = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       ...body,
       submitted_at: new Date().toISOString(),
       source: 'website'
@@ -33,61 +27,27 @@ export async function POST(request: Request) {
     
     console.log('Prepared submission:', submission)
     
-    // Ensure data directory exists
-    const dataDir = path.dirname(DATA_FILE)
-    console.log('Data directory path:', dataDir)
-    console.log('Data file path:', DATA_FILE)
+    // Insert into Supabase
+    const { data, error } = await supabaseServer
+      .from('feedback_submissions')
+      .insert([submission])
+      .select()
     
-    try {
-      if (!existsSync(dataDir)) {
-        console.log('Creating data directory...')
-        await mkdir(dataDir, { recursive: true })
-        console.log('Data directory created successfully')
-      }
-    } catch (dirError) {
-      console.error('Error creating data directory:', dirError)
-      // Continue anyway, might be a permission issue
-    }
-    
-    // Read existing submissions
-    let submissions = []
-    try {
-      if (existsSync(DATA_FILE)) {
-        console.log('Reading existing data file...')
-        const fileContent = await readFile(DATA_FILE, 'utf-8')
-        submissions = JSON.parse(fileContent)
-        console.log('Successfully read', submissions.length, 'existing submissions')
-      } else {
-        console.log('No existing data file found, starting fresh')
-      }
-    } catch (readError) {
-      console.error('Error reading existing data:', readError)
-      console.log('Starting with empty submissions array')
-      submissions = []
-    }
-    
-    // Add new submission
-    submissions.push(submission)
-    console.log('Added submission to array. Total submissions:', submissions.length)
-    
-    // Write back to file
-    try {
-      console.log('Writing data to file...')
-      await writeFile(DATA_FILE, JSON.stringify(submissions, null, 2))
-      console.log('Successfully wrote data to file')
-    } catch (writeError) {
-      console.error('Error writing to file:', writeError)
+    if (error) {
+      console.error('Supabase insert error:', error)
       return NextResponse.json(
-        { error: 'Failed to save data - file system error' },
+        { error: 'Failed to save feedback to database', details: error.message },
         { status: 500 }
       )
     }
     
+    console.log('Successfully saved to Supabase:', data)
+    
     return NextResponse.json({
       success: true,
       message: 'Feedback submitted successfully!',
-      data: submission,
-      totalSubmissions: submissions.length
+      data: data[0],
+      totalSubmissions: 1 // We'll get actual count from analytics
     })
     
   } catch (err) {
