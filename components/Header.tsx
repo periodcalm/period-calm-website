@@ -9,7 +9,7 @@ import { Heart, Menu, X, ShoppingCartIcon as CartIcon, User, Shield, MessageSqua
 import Link from "next/link"
 import { useHasMounted } from "@/hooks/use-has-mounted"
 import { useCartStore } from "@/lib/cart-store"
-import { useAuthStore } from "@/lib/auth-store"
+// Removed auth-store import - no longer using authentication
 import { ShoppingCart } from "@/components/shopping-cart"
 import { ComingSoonModal } from "@/components/ComingSoonModal"
 import { useLiveStatsStore } from "@/lib/live-stats-store"
@@ -33,7 +33,7 @@ export function Header() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { getTotalItems, toggleCart } = useCartStore()
-  const { isAuthenticated, user, logout } = useAuthStore()
+  // Removed auth-store usage - no longer using authentication
   const { addFeedbackSubmission } = useLiveStatsStore()
   const hasMounted = useHasMounted()
   const [showEmpowerPopover, setShowEmpowerPopover] = useState(true)
