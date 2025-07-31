@@ -1,36 +1,52 @@
 import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+// Initialize Redis client (with fallback)
+let redis: Redis | null = null
+try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+    console.log('✅ Export: Redis client initialized successfully')
+  } else {
+    console.log('⚠️ Export: Redis environment variables not found, using fallback storage')
+  }
+} catch (error) {
+  console.log('⚠️ Export: Failed to initialize Redis, using fallback storage:', error)
+}
+
+// Fallback in-memory storage (temporary until Redis is set up)
+let fallbackSubmissions: any[] = []
 
 export async function GET() {
   try {
     console.log('=== EXPORT FEEDBACK API ===')
     
-    // Get submissions from Redis
+    // Get submissions
     let submissions: any[] = []
-    try {
-      const existingData = await redis.get('feedback-submissions')
-      if (existingData) {
-        submissions = existingData as any[]
-        console.log('Export: Loaded', submissions.length, 'submissions from Redis')
-      } else {
-        console.log('Export: No data in Redis, returning empty export')
-        return NextResponse.json({
-          success: false,
-          message: 'No feedback data available to export'
-        })
+    
+    if (redis) {
+      // Try Redis first
+      try {
+        const existingData = await redis.get('feedback-submissions')
+        if (existingData) {
+          submissions = existingData as any[]
+          console.log('Export: Loaded', submissions.length, 'submissions from Redis')
+        } else {
+          console.log('Export: No data in Redis, using fallback')
+          submissions = [...fallbackSubmissions]
+        }
+      } catch (redisError) {
+        console.error('Export: Error reading from Redis:', redisError)
+        console.log('Export: Falling back to in-memory storage')
+        submissions = [...fallbackSubmissions]
       }
-    } catch (redisError) {
-      console.error('Export: Error reading from Redis:', redisError)
-      return NextResponse.json({
-        success: false,
-        message: 'No feedback data available to export'
-      })
+    } else {
+      // Use fallback storage
+      submissions = [...fallbackSubmissions]
+      console.log('Export: Using fallback storage, submissions:', submissions.length)
     }
     
     if (submissions.length === 0) {

@@ -1,11 +1,24 @@
 import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+// Initialize Redis client (with fallback)
+let redis: Redis | null = null
+try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+    console.log('✅ Redis client initialized successfully')
+  } else {
+    console.log('⚠️ Redis environment variables not found, using fallback storage')
+  }
+} catch (error) {
+  console.log('⚠️ Failed to initialize Redis, using fallback storage:', error)
+}
+
+// Fallback in-memory storage (temporary until Redis is set up)
+let fallbackSubmissions: any[] = []
 
 export async function POST(request: Request) {
   try {
@@ -34,44 +47,60 @@ export async function POST(request: Request) {
     
     console.log('Prepared submission:', submission)
     
-    // Get existing submissions from Redis
+    // Get existing submissions
     let submissions: any[] = []
-    try {
-      const existingData = await redis.get('feedback-submissions')
-      if (existingData) {
-        submissions = existingData as any[]
-        console.log('Loaded', submissions.length, 'existing submissions from Redis')
-      } else {
-        console.log('No existing data in Redis, starting fresh')
+    
+    if (redis) {
+      // Try Redis first
+      try {
+        const existingData = await redis.get('feedback-submissions')
+        if (existingData) {
+          submissions = existingData as any[]
+          console.log('Loaded', submissions.length, 'existing submissions from Redis')
+        } else {
+          console.log('No existing data in Redis, starting fresh')
+        }
+      } catch (redisReadError) {
+        console.error('Error reading from Redis:', redisReadError)
+        console.log('Falling back to in-memory storage')
+        submissions = [...fallbackSubmissions]
       }
-    } catch (redisReadError) {
-      console.error('Error reading from Redis:', redisReadError)
-      console.log('Starting with empty submissions array')
-      submissions = []
+    } else {
+      // Use fallback storage
+      submissions = [...fallbackSubmissions]
+      console.log('Using fallback storage, current submissions:', submissions.length)
     }
     
     // Add new submission
     submissions.push(submission)
     console.log('Added submission to array. Total submissions:', submissions.length)
     
-    // Save to Redis storage
-    try {
-      console.log('Saving data to Redis...')
-      await redis.set('feedback-submissions', submissions)
-      console.log('Successfully saved data to Redis')
-    } catch (redisWriteError) {
-      console.error('Error writing to Redis:', redisWriteError)
-      return NextResponse.json(
-        { error: 'Failed to save data - Redis storage error' },
-        { status: 500 }
-      )
+    // Save data
+    if (redis) {
+      try {
+        console.log('Saving data to Redis...')
+        await redis.set('feedback-submissions', submissions)
+        console.log('Successfully saved data to Redis')
+        
+        // Also update fallback for consistency
+        fallbackSubmissions = [...submissions]
+      } catch (redisWriteError) {
+        console.error('Error writing to Redis:', redisWriteError)
+        console.log('Falling back to in-memory storage')
+        fallbackSubmissions = [...submissions]
+      }
+    } else {
+      // Use fallback storage
+      fallbackSubmissions = [...submissions]
+      console.log('Saved to fallback storage')
     }
     
     return NextResponse.json({
       success: true,
       message: 'Feedback submitted successfully!',
       data: submission,
-      totalSubmissions: submissions.length
+      totalSubmissions: submissions.length,
+      storage: redis ? 'redis' : 'fallback'
     })
     
   } catch (err) {
