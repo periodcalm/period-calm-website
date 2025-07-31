@@ -1068,6 +1068,11 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       return currentAnswer.trim() !== '' && validateAge(currentAnswer)
     }
     
+    if (currentQuestion.type === 'final') {
+      // Final thoughts are optional, so always allow proceeding
+      return true
+    }
+    
     return currentAnswer.trim() !== ''
   }
 
