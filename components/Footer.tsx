@@ -73,29 +73,29 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/faq" className="text-gray-400 hover:text-white transition-colors">
-                  FAQ
-                </Link>
+                <span className="text-gray-400">
+                  FAQ (Coming Soon)
+                </span>
               </li>
               <li>
-                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors">
-                  Contact Us
-                </Link>
+                <span className="text-gray-400">
+                  Contact Us (Coming Soon)
+                </span>
               </li>
               <li>
-                <Link href="/shipping" className="text-gray-400 hover:text-white transition-colors">
-                  Shipping Info
-                </Link>
+                <span className="text-gray-400">
+                  Shipping Info (Coming Soon)
+                </span>
               </li>
               <li>
-                <Link href="/returns" className="text-gray-400 hover:text-white transition-colors">
-                  Returns
-                </Link>
+                <span className="text-gray-400">
+                  Returns (Coming Soon)
+                </span>
               </li>
               <li>
-                <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">
-                  Privacy Policy
-                </Link>
+                <span className="text-gray-400">
+                  Privacy Policy (Coming Soon)
+                </span>
               </li>
             </ul>
           </div>
@@ -121,15 +121,15 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-gray-400 text-sm">© 2024 Period Calm. All rights reserved.</div>
           <div className="flex space-x-6 text-sm text-gray-400 mt-4 md:mt-0">
-            <Link href="/terms" className="hover:text-white transition-colors">
-              Terms of Service
-            </Link>
-            <Link href="/privacy" className="hover:text-white transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/cookies" className="hover:text-white transition-colors">
-              Cookie Policy
-            </Link>
+            <span className="text-gray-400">
+              Terms of Service (Coming Soon)
+            </span>
+            <span className="text-gray-400">
+              Privacy Policy (Coming Soon)
+            </span>
+            <span className="text-gray-400">
+              Cookie Policy (Coming Soon)
+            </span>
           </div>
         </div>
       </div>

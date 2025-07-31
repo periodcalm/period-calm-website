@@ -9,6 +9,15 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if Supabase is configured
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase environment variables not configured')
+      return NextResponse.json(
+        { error: 'Database not configured yet' },
+        { status: 503 }
+      )
+    }
+
     // Get analytics from the view
     const { data: analyticsData, error: analyticsError } = await supabase
       .from('feedback_analytics')
@@ -17,6 +26,71 @@ export async function GET(request: NextRequest) {
 
     if (analyticsError) {
       console.error('Analytics view error:', analyticsError)
+      
+      // If the view doesn't exist yet, return empty data
+      if (analyticsError.code === 'PGRST116') {
+        return NextResponse.json({
+          success: true,
+          data: {
+            total_submissions: 0,
+            unique_users: 0,
+            average_ratings: {
+              overall_satisfaction: 0,
+              taste: 0,
+              packaging_convenience: 0,
+              value_for_money: 0
+            },
+            nps_score: 0,
+            purchase_intent_percentage: 0,
+            likely_to_buy: 0,
+            maybe_to_buy: 0,
+            unlikely_to_buy: 0,
+            likely_to_recommend: 0,
+            maybe_recommend: 0,
+            unlikely_to_recommend: 0,
+            pain_severity_distribution: {
+              mild: 0,
+              moderate: 0,
+              severe: 0,
+              very_severe: 0
+            },
+            age_distribution: {
+              average_age: 0,
+              under_25: 0,
+              age_25_34: 0,
+              age_35_44: 0,
+              over_45: 0
+            },
+            effect_speed_distribution: {
+              very_fast: 0,
+              fast: 0,
+              slow: 0,
+              no_relief: 0
+            },
+            side_effects: {
+              none: 0,
+              with_side_effects: 0
+            },
+            community_engagement: {
+              volunteer_interested: 0,
+              campaign_interested: 0,
+              testimonial_permitted: 0
+            },
+            recent_activity: {
+              last_7_days: 0,
+              last_30_days: 0
+            },
+            popular_symptoms_benefits: [],
+            popular_flavor_preferences: [],
+            trends: {
+              recent_avg_satisfaction: 0,
+              recent_purchase_intent: 0,
+              recent_submissions_count: 0
+            }
+          }
+        })
+      }
+      
       return NextResponse.json(
         { error: 'Failed to retrieve analytics data' },
         { status: 500 }
@@ -24,19 +98,34 @@ export async function GET(request: NextRequest) {
     }
 
     // Get popular symptoms and benefits
-    const { data: symptomsData, error: symptomsError } = await supabase
-      .rpc('get_popular_symptoms_benefits')
+    let symptomsData = []
+    let flavorsData = []
+    
+    try {
+      const { data: symptomsResult, error: symptomsError } = await supabase
+        .rpc('get_popular_symptoms_benefits')
 
-    if (symptomsError) {
-      console.error('Symptoms function error:', symptomsError)
+      if (symptomsError) {
+        console.error('Symptoms function error:', symptomsError)
+      } else {
+        symptomsData = symptomsResult || []
+      }
+    } catch (error) {
+      console.error('Symptoms function not available yet:', error)
     }
 
     // Get popular flavor preferences
-    const { data: flavorsData, error: flavorsError } = await supabase
-      .rpc('get_popular_flavor_preferences')
+    try {
+      const { data: flavorsResult, error: flavorsError } = await supabase
+        .rpc('get_popular_flavor_preferences')
 
-    if (flavorsError) {
-      console.error('Flavors function error:', flavorsError)
+      if (flavorsError) {
+        console.error('Flavors function error:', flavorsError)
+      } else {
+        flavorsData = flavorsResult || []
+      }
+    } catch (error) {
+      console.error('Flavors function not available yet:', error)
     }
 
     // Get recent submissions for trends

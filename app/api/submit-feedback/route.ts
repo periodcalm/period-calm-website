@@ -9,6 +9,15 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Supabase is configured
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Supabase environment variables not configured')
+      return NextResponse.json(
+        { error: 'Database not configured yet. Please contact support.' },
+        { status: 503 }
+      )
+    }
+
     const body = await request.json()
     
     // Validate required fields
