@@ -786,15 +786,18 @@ const ENCOURAGEMENT_MESSAGES = [
 export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: () => void }) {
   const [currentStep, setCurrentStep] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('feedback-progress')
-      return saved ? parseInt(saved) : 0
+      // Clear any saved progress to start fresh
+      localStorage.removeItem('feedback-progress')
+      localStorage.removeItem('feedback-data')
+      return 0
     }
     return 0
   })
   const [feedbackData, setFeedbackData] = useState<FeedbackData>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('feedback-data')
-      return saved ? JSON.parse(saved) : {
+      // Clear any saved data to start fresh
+      localStorage.removeItem('feedback-data')
+      return {
         first_name: '',
         last_name: '',
         age: '',

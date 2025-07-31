@@ -4,12 +4,24 @@ import { supabaseServer } from '@/supabase/server'
 export async function GET() {
   try {
     console.log('=== SUPABASE ANALYTICS API ===')
+    console.log('Environment check:', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...'
+    })
     
     // Get all submissions from Supabase
     const { data: submissions, error } = await supabaseServer
       .from('feedback_submissions')
       .select('*')
       .order('submitted_at', { ascending: false })
+    
+    console.log('Supabase query result:', {
+      hasData: !!submissions,
+      dataLength: submissions?.length || 0,
+      hasError: !!error,
+      error: error?.message
+    })
     
     if (error) {
       console.error('Supabase query error:', error)
@@ -29,6 +41,9 @@ export async function GET() {
     }
     
     console.log('Loaded submissions from Supabase:', submissions?.length || 0)
+    if (submissions && submissions.length > 0) {
+      console.log('Sample submission:', submissions[0])
+    }
     
     if (!submissions || submissions.length === 0) {
       return NextResponse.json({
