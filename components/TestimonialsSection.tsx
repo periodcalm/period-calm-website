@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Star, ChevronLeft, ChevronRight, Quote, RefreshCw } from "lucide-react"
-import { useLiveStatsStore } from "@/lib/live-stats-store"
+
 import { AnimatedCounter } from "@/components/AnimatedCounter"
 
 interface Testimonial {
@@ -32,7 +32,7 @@ export default function TestimonialsSection() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { stats, syncWithFeedbackData } = useLiveStatsStore()
+
 
   const fetchTestimonials = async () => {
     try {

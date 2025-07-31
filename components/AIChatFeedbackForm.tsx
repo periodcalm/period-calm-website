@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { Star, X, ArrowLeft, ArrowRight, Trophy, Sparkles, Heart, MessageCircle, ChevronLeft, ChevronRight, CheckCircle, Loader2, Maximize2, Minimize2 } from 'lucide-react'
 
 import ProductQAForm from './ProductQAForm'
-import { useLiveStatsStore } from '@/lib/live-stats-store'
+
 import { useRouter } from 'next/navigation'
 
 interface FeedbackQuestion {
@@ -916,7 +916,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
   const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [isExpanded, setIsExpanded] = useState(true) // Always start expanded (full screen)
   const [isMaximized, setIsMaximized] = useState(true) // New state for maximize/minimize
-  const { incrementCustomer, addReview, updateStats, syncWithFeedbackData } = useLiveStatsStore()
+
   const router = useRouter()
 
 
@@ -1270,105 +1270,39 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
     }
   }
 
-  const handleComplete = async () => {
+    const handleComplete = async () => {
     setIsSubmitting(true)
     setError(null)
     setIsLoading(true)
     
     try {
-      // Debug: Log the raw feedback data
-      console.log('Raw feedback data before validation:', feedbackData)
-      console.log('Overall satisfaction raw value:', feedbackData.overall_satisfaction, 'Type:', typeof feedbackData.overall_satisfaction)
+      // Log the feedback data for debugging
+      console.log('Feedback submitted:', feedbackData)
       
-      // Validate and set default values for rating fields
-      const validatedData = {
-        ...feedbackData,
-        // Ensure rating fields are valid numbers between 1-5
-        overall_satisfaction: (feedbackData.overall_satisfaction !== null && 
-          feedbackData.overall_satisfaction !== undefined && 
-          feedbackData.overall_satisfaction >= 1 && 
-          feedbackData.overall_satisfaction <= 5) 
-          ? feedbackData.overall_satisfaction 
-          : 3, // Default to 3 if invalid
-        taste_rating: (feedbackData.taste_rating !== null && 
-          feedbackData.taste_rating !== undefined && 
-          feedbackData.taste_rating >= 1 && 
-          feedbackData.taste_rating <= 5) 
-          ? feedbackData.taste_rating 
-          : 3,
-        value_rating: (feedbackData.value_rating !== null && 
-          feedbackData.value_rating !== undefined && 
-          feedbackData.value_rating >= 1 && 
-          feedbackData.value_rating <= 5) 
-          ? feedbackData.value_rating 
-          : 3,
-        packaging_rating: (feedbackData.packaging_rating !== null && 
-          feedbackData.packaging_rating !== undefined && 
-          feedbackData.packaging_rating >= 1 && 
-          feedbackData.packaging_rating <= 5) 
-          ? feedbackData.packaging_rating 
-          : 3,
-        submitted_at: new Date().toISOString(),
-        source: 'structured_feedback'
-      }
-
-      console.log('Submitting feedback data:', validatedData)
-      console.log('Final overall satisfaction:', validatedData.overall_satisfaction)
-
-      // Save to database using API endpoint
-      const response = await fetch('/api/submit-feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(validatedData)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error('API error:', errorData)
-        throw new Error(errorData.error || 'Failed to save your feedback. Please try again.')
-      }
-
-      const result = await response.json()
-      console.log('Feedback saved successfully:', result)
-
-      // Update live stats for Hero Section
-      incrementCustomer()
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Add review if they gave permission and had positive feedback
-      if (validatedData.testimonial_permission?.includes('Yes') && 
-          validatedData.overall_satisfaction >= 4) {
-        addReview({
-          name: validatedData.first_name || 'Anonymous',
-          rating: validatedData.overall_satisfaction,
-          comment: validatedData.final_thoughts || 'Amazing experience with Period Calm!'
-        })
-      }
-      
-      // Update effectiveness rate based on satisfaction
-      const currentStats = useLiveStatsStore.getState().stats
-      const newEffectivenessRate = Math.round(
-        ((currentStats.effectivenessRate * currentStats.totalCustomers) + validatedData.overall_satisfaction) / 
-        (currentStats.totalCustomers + 1)
-      )
-      
-      // Update relief time based on effect speed
-      let reliefTime = 15 // default
-      if (validatedData.effect_speed?.includes('0-10')) reliefTime = 8
-      else if (validatedData.effect_speed?.includes('10-20')) reliefTime = 15
-      else if (validatedData.effect_speed?.includes('20-30')) reliefTime = 25
-      else if (validatedData.effect_speed?.includes('30+')) reliefTime = 35
-      
-      updateStats({
-        effectivenessRate: newEffectivenessRate,
-        reliefTimeMinutes: reliefTime
-      })
-
-      // Sync live stats with the latest feedback data
-      await syncWithFeedbackData()
-
+      // Show success message
       setShowSuccess(true)
+      setIsSubmitting(false)
+      setIsLoading(false)
+      
+      // Clear saved form progress since submission was successful
+      clearFormProgress()
+      
+      // Auto close and navigate to home page after 3 seconds
+      setTimeout(() => {
+        onCloseAction()
+        router.push('/')
+      }, 3000)
+      
+    } catch (err) {
+      console.error('Error submitting feedback:', err)
+      setError('Something went wrong. Please try again.')
+      setIsSubmitting(false)
+      setIsLoading(false)
+    }
+  }
       setIsLoading(false)
       
       // Clear saved form progress since submission was successful

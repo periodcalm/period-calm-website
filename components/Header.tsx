@@ -12,8 +12,8 @@ import { useCartStore } from "@/lib/cart-store"
 // Removed auth-store import - no longer using authentication
 import { ShoppingCart } from "@/components/shopping-cart"
 import { ComingSoonModal } from "@/components/ComingSoonModal"
-import { useLiveStatsStore } from "@/lib/live-stats-store"
-import AIChatFeedbackForm from "./AIChatFeedbackForm"
+
+import SimpleFeedbackForm from "./SimpleFeedbackForm"
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
@@ -34,7 +34,7 @@ export function Header() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { getTotalItems, toggleCart } = useCartStore()
   // Removed auth-store usage - no longer using authentication
-  const { addFeedbackSubmission } = useLiveStatsStore()
+
   const hasMounted = useHasMounted()
   const [showEmpowerPopover, setShowEmpowerPopover] = useState(true)
   const isMobile = useIsMobile()
@@ -221,7 +221,7 @@ export function Header() {
 
                   {/* Empower Us Modal - always render when isFeedbackOpen is true */}
             {isFeedbackOpen && (
-              <AIChatFeedbackForm onCloseAction={() => setIsFeedbackOpen(false)} />
+              <SimpleFeedbackForm isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
             )}
       
       {/* Coming Soon Modal */}

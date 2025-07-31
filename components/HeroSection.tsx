@@ -4,14 +4,14 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Star, Heart, Zap, Shield, ArrowRight, Play } from "lucide-react"
-import { useLiveStatsStore } from "@/lib/live-stats-store"
+
 import { AnimatedCounter } from "@/components/AnimatedCounter"
 import Image from "next/image"
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
-  const { stats, recentReviews } = useLiveStatsStore()
+
 
   useEffect(() => {
     setIsVisible(true)

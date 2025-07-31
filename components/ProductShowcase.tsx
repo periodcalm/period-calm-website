@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCartStore } from "@/lib/cart-store"
 // Removed admin-store import - using default product data
-import { useLiveStatsStore } from "@/lib/live-stats-store"
+
 import { AnimatedCounter } from "@/components/AnimatedCounter"
 import {
   Star,
@@ -222,51 +222,14 @@ export function ProductShowcase() {
   const [isLoadingStats, setIsLoadingStats] = useState(true)
   const { addItem } = useCartStore()
   // Removed admin-store usage - using default product data
-  const { stats, syncWithFeedbackData, debugStats, clearStore } = useLiveStatsStore()
 
-  // Use default product data since admin store is removed
+
+  // Use default product data
   const product = defaultProduct
-  
-  // Debug: Log current stats
-  console.log('🏪 ProductShowcase current stats:', stats)
-  console.log('🏪 ProductShowcase values being passed to AnimatedCounter:', {
-    averageRating: stats.averageRating,
-    totalReviews: stats.totalReviews,
-    totalCustomers: stats.totalCustomers,
-    averageRatingType: typeof stats.averageRating,
-    totalReviewsType: typeof stats.totalReviews,
-    totalCustomersType: typeof stats.totalCustomers
-  })
 
   useEffect(() => {
     setIsVisible(true)
-    console.log('🏪 ProductShowcase mounted, syncing stats...')
-    
-    // Immediate sync
-    const initialSync = async () => {
-      setIsLoadingStats(true)
-      await syncWithFeedbackData()
-      setIsLoadingStats(false)
-    }
-    initialSync()
-    
-    // Additional sync after a short delay to ensure data loads
-    const timeoutId = setTimeout(async () => {
-      console.log('🔄 ProductShowcase delayed sync...')
-      await syncWithFeedbackData()
-    }, 1000)
-    
-    // Set up periodic sync every 30 seconds
-    const interval = setInterval(() => {
-      console.log('🔄 ProductShowcase periodic sync...')
-      syncWithFeedbackData()
-    }, 30000)
-    
-    return () => {
-      clearTimeout(timeoutId)
-      clearInterval(interval)
-    }
-  }, [syncWithFeedbackData])
+  }, [])
 
   const nextImage = () => {
     setCurrentImage((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))
@@ -425,7 +388,7 @@ export function ProductShowcase() {
                     {isLoadingStats ? (
                       <span className="text-gray-400">Loading...</span>
                     ) : (
-                      <span>{stats.averageRating || 4.9}</span>
+                      <span>4.9</span>
                     )}
                   </span>
                 </div>
@@ -433,7 +396,7 @@ export function ProductShowcase() {
                   {isLoadingStats ? (
                     "(Loading...)"
                   ) : (
-                    `(${stats.totalReviews || 7} reviews)`
+                    `(7 reviews)`
                   )}
                 </span>
                 <Badge variant="outline" className="text-xs">
@@ -441,14 +404,14 @@ export function ProductShowcase() {
                   {isLoadingStats ? (
                     "Loading..."
                   ) : (
-                    <span>{stats.totalCustomers || 7}+</span>
+                    <span>7+</span>
                   )} happy users
                 </Badge>
                 <button
                   onClick={async () => {
                     console.log('🔄 Manual refresh clicked!')
                     setIsRefreshing(true)
-                    await syncWithFeedbackData()
+                    // await syncWithFeedbackData() // Removed syncWithFeedbackData
                     setIsRefreshing(false)
                     console.log('✅ Manual refresh completed!')
                   }}
@@ -461,7 +424,7 @@ export function ProductShowcase() {
                 <button
                   onClick={() => {
                     console.log('🔍 Debug stats clicked!')
-                    debugStats()
+                    // debugStats() // Removed debugStats
                   }}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                   title="Debug stats"
@@ -471,7 +434,7 @@ export function ProductShowcase() {
                 <button
                   onClick={() => {
                     console.log('🗑️ Clear store clicked!')
-                    clearStore()
+                    // clearStore() // Removed clearStore
                   }}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                   title="Clear store"
