@@ -214,6 +214,7 @@ export default function CycleTracker() {
         water: 0,
         ...prev[dateKey],
         ...entryData,
+        date: dateKey, // Ensure date is set correctly after spread
       },
     }))
     setShowAddEntry(false)
