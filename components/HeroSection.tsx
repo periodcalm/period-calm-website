@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Star, Heart, Zap, Shield, ArrowRight, Play } from "lucide-react"
+import { Star, Heart, Zap, Shield, ArrowRight, Play, RefreshCw } from "lucide-react"
 
 import { AnimatedCounter } from "@/components/AnimatedCounter"
 import { useAnalytics } from "@/hooks/useAnalytics"
@@ -13,7 +13,7 @@ import Image from "next/image"
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
-  const { analyticsData, testimonials, isLoading } = useAnalytics()
+  const { analyticsData, testimonials, isLoading, refetch } = useAnalytics()
 
   // Analytics data loaded
 
@@ -61,10 +61,22 @@ export default function HeroSection() {
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
             >
-              <Badge className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 text-sm font-medium floating-badge">
-                <Star className="w-4 h-4 mr-2" />
-                #1 Natural Period Relief
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 text-sm font-medium floating-badge">
+                  <Star className="w-4 h-4 mr-2" />
+                  #1 Natural Period Relief
+                </Badge>
+                <button
+                  onClick={() => {
+                    console.log('🔄 Manual refresh clicked from HeroSection')
+                    refetch()
+                  }}
+                  className="p-1 hover:bg-rose-100 rounded-full transition-colors"
+                  title="Refresh data"
+                >
+                  <RefreshCw className="w-4 h-4 text-rose-600" />
+                </button>
+              </div>
             </div>
 
             {/* Main Heading */}

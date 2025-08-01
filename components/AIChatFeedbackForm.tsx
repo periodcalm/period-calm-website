@@ -624,7 +624,9 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       setShowSuccess(true)
       
       // Trigger global analytics refresh
+      console.log('📡 Dispatching feedbackSubmitted event...')
       window.dispatchEvent(new CustomEvent('feedbackSubmitted'))
+      console.log('✅ feedbackSubmitted event dispatched')
       
       // Auto close after 4 seconds
       setTimeout(() => {

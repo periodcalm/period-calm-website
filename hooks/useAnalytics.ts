@@ -96,19 +96,28 @@ export function useAnalytics() {
       setIsLoading(true)
       setError(null)
 
+      // Add cache-busting parameter to prevent caching
+      const timestamp = new Date().getTime()
+
       // Fetch analytics data
-      const analyticsResponse = await fetch('/api/analytics')
+      const analyticsResponse = await fetch(`/api/analytics?t=${timestamp}`)
       if (!analyticsResponse.ok) {
         throw new Error('Failed to fetch analytics data')
       }
       const analytics = await analyticsResponse.json()
 
       // Fetch testimonials from feedback submissions
-      const feedbackResponse = await fetch('/api/submit-feedback')
+      const feedbackResponse = await fetch(`/api/submit-feedback?t=${timestamp}`)
       if (!feedbackResponse.ok) {
         throw new Error('Failed to fetch feedback data')
       }
       const feedbackData = await feedbackResponse.json()
+
+      console.log('🔄 Analytics refreshed:', {
+        totalSubmissions: analytics.data.total_submissions,
+        feedbackCount: feedbackData.data.length,
+        timestamp: new Date().toLocaleTimeString()
+      })
 
       // Transform feedback data into testimonials
       const transformedTestimonials: Testimonial[] = feedbackData.data
@@ -156,12 +165,15 @@ export function useAnalytics() {
   // Listen for feedback submission events to refresh data
   useEffect(() => {
     const handleFeedbackSubmitted = () => {
+      console.log('📡 Feedback submitted event received, refreshing analytics...')
       fetchAnalytics()
     }
 
+    console.log('🎧 Setting up feedback submission event listener')
     window.addEventListener('feedbackSubmitted', handleFeedbackSubmitted)
     
     return () => {
+      console.log('🎧 Cleaning up feedback submission event listener')
       window.removeEventListener('feedbackSubmitted', handleFeedbackSubmitted)
     }
   }, [])
