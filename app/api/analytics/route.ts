@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
       uniqueUsers,
       submissionCount: submissions?.length || 0,
       submissionEmails: submissions?.map(f => f.email) || [],
+      submissionIds: submissions?.map(f => f.id) || [],
+      submissionCreatedAts: submissions?.map(f => f.created_at) || [],
       timestamp: new Date().toISOString()
     })
 

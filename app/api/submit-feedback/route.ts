@@ -175,7 +175,8 @@ export async function GET(request: NextRequest) {
       .from('feedback_submissions')
       .select('*')
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      // Remove pagination to get all records like analytics API
+      // .range(offset, offset + limit - 1)
 
     if (error) {
       console.error('Supabase select error:', error)
@@ -189,6 +190,8 @@ export async function GET(request: NextRequest) {
     console.log('📋 Submit-feedback GET Debug:', {
       dataCount: data?.length || 0,
       emails: data?.map(f => f.email) || [],
+      ids: data?.map(f => f.id) || [],
+      createdAts: data?.map(f => f.created_at) || [],
       timestamp: new Date().toISOString()
     })
 
