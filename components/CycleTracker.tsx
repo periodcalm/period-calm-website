@@ -201,7 +201,6 @@ export default function CycleTracker() {
     setCycleData((prev) => ({
       ...prev,
       [dateKey]: {
-        date: dateKey,
         isPeriod: false,
         flow: null,
         symptoms: [],
