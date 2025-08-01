@@ -48,6 +48,14 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString()
     })
 
+    // Add detailed record-by-record logging
+    console.log('📊 Analytics API - Full Records:', submissions?.map(f => ({
+      id: f.id,
+      email: f.email,
+      created_at: f.created_at,
+      overall_satisfaction: f.overall_satisfaction
+    })) || [])
+
     // Calculate average ratings
     const ratings = submissions?.filter(f => f.overall_satisfaction) || []
     const avgOverall = ratings.length > 0 ? ratings.reduce((sum, f) => sum + (f.overall_satisfaction || 0), 0) / ratings.length : 0

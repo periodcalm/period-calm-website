@@ -17,6 +17,8 @@ export default function HeroSection() {
 
   // Analytics data loaded
 
+  // Analytics data loaded
+
   useEffect(() => {
     setIsVisible(true)
     setHasMounted(true)
@@ -67,14 +69,11 @@ export default function HeroSection() {
                   #1 Natural Period Relief
                 </Badge>
                 <button
-                  onClick={() => {
-                    console.log('🔄 Manual refresh clicked from HeroSection')
-                    refetch()
-                  }}
+                  onClick={() => refetch()}
                   className="p-1 hover:bg-rose-100 rounded-full transition-colors"
                   title="Refresh data"
                 >
-                  <RefreshCw className="w-4 h-4 text-rose-600" />
+                  <RefreshCw className={`w-4 h-4 text-rose-600 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>
               </div>
             </div>

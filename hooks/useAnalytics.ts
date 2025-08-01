@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface AnalyticsData {
   total_submissions: number
@@ -90,8 +90,9 @@ export function useAnalytics() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0) // Force re-render trigger
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -113,11 +114,7 @@ export function useAnalytics() {
       }
       const feedbackData = await feedbackResponse.json()
 
-      console.log('🔄 Analytics refreshed:', {
-        totalSubmissions: analytics.data.total_submissions,
-        feedbackCount: feedbackData.data.length,
-        timestamp: new Date().toLocaleTimeString()
-      })
+      // Analytics data fetched successfully
 
       // Transform feedback data into testimonials
       const transformedTestimonials: Testimonial[] = feedbackData.data
@@ -148,15 +145,21 @@ export function useAnalytics() {
         }))
         .slice(0, 10) // Limit to 10 best testimonials
 
+      // Force state update with new data
       setAnalyticsData(analytics.data)
       setTestimonials(transformedTestimonials)
+      
+      // Force re-render with a slight delay to ensure state updates are processed
+      setTimeout(() => {
+        setRefreshTrigger(prev => prev + 1)
+      }, 100)
     } catch (err) {
       console.error('Error fetching analytics:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch data')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, []) // Remove refreshTrigger from dependencies to prevent infinite loops
 
   useEffect(() => {
     fetchAnalytics()
@@ -165,18 +168,15 @@ export function useAnalytics() {
   // Listen for feedback submission events to refresh data
   useEffect(() => {
     const handleFeedbackSubmitted = () => {
-      console.log('📡 Feedback submitted event received, refreshing analytics...')
       fetchAnalytics()
     }
 
-    console.log('🎧 Setting up feedback submission event listener')
     window.addEventListener('feedbackSubmitted', handleFeedbackSubmitted)
     
     return () => {
-      console.log('🎧 Cleaning up feedback submission event listener')
       window.removeEventListener('feedbackSubmitted', handleFeedbackSubmitted)
     }
-  }, [])
+  }, [fetchAnalytics]) // Include fetchAnalytics in dependencies
 
   // Add refetch function for manual refresh
   const refetch = () => {
