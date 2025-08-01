@@ -19,9 +19,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get analytics from the feedback_submissions table directly
+    // Add cache-busting by ordering by created_at desc to ensure latest data
     const { data: submissions, error: submissionsError } = await supabase
       .from('feedback_submissions')
       .select('*')
+      .order('created_at', { ascending: false })
 
     if (submissionsError) {
       console.error('Submissions error:', submissionsError)
@@ -35,6 +37,15 @@ export async function GET(request: NextRequest) {
     const totalSubmissions = submissions?.length || 0
     const uniqueUsers = new Set(submissions?.map(f => f.email) || []).size
     
+    // Debug logging
+    console.log('📊 Analytics API Debug:', {
+      totalSubmissions,
+      uniqueUsers,
+      submissionCount: submissions?.length || 0,
+      submissionEmails: submissions?.map(f => f.email) || [],
+      timestamp: new Date().toISOString()
+    })
+
     // Calculate average ratings
     const ratings = submissions?.filter(f => f.overall_satisfaction) || []
     const avgOverall = ratings.length > 0 ? ratings.reduce((sum, f) => sum + (f.overall_satisfaction || 0), 0) / ratings.length : 0

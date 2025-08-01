@@ -185,6 +185,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Debug logging
+    console.log('📋 Submit-feedback GET Debug:', {
+      dataCount: data?.length || 0,
+      emails: data?.map(f => f.email) || [],
+      timestamp: new Date().toISOString()
+    })
+
     return NextResponse.json({
       success: true,
       data: data,
