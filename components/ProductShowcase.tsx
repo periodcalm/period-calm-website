@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCartStore } from "@/lib/cart-store"
+import { useAnalytics } from "@/hooks/useAnalytics"
 // Removed admin-store import - using default product data
 
 import { AnimatedCounter } from "@/components/AnimatedCounter"
@@ -221,11 +222,16 @@ export function ProductShowcase() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
   const { addItem } = useCartStore()
+  const { analyticsData, isLoading } = useAnalytics()
   // Removed admin-store usage - using default product data
 
-
-  // Use default product data
-  const product = defaultProduct
+  // Use default product data with dynamic values from analytics
+  const product = {
+    ...defaultProduct,
+    rating: analyticsData?.average_ratings?.overall_satisfaction || defaultProduct.rating,
+    reviewCount: analyticsData?.total_submissions || defaultProduct.reviewCount,
+    customerCount: analyticsData?.total_submissions || defaultProduct.customerCount
+  }
 
   useEffect(() => {
     setIsVisible(true)
@@ -385,35 +391,33 @@ export function ProductShowcase() {
                     <Star key={i} className="w-5 h-5 fill-rose-400 text-rose-400" />
                   ))}
                   <span className="ml-2 font-semibold">
-                    {isLoadingStats ? (
+                    {isLoading ? (
                       <span className="text-gray-400">Loading...</span>
                     ) : (
-                      <span>4.9</span>
+                      <span>{product.rating.toFixed(1)}</span>
                     )}
                   </span>
                 </div>
                 <span className="text-gray-600">
-                  {isLoadingStats ? (
+                  {isLoading ? (
                     "(Loading...)"
                   ) : (
-                    `(7 reviews)`
+                    `(${product.reviewCount} reviews)`
                   )}
                 </span>
                 <Badge variant="outline" className="text-xs">
                   <Users className="w-3 h-3 mr-1" />
-                  {isLoadingStats ? (
+                  {isLoading ? (
                     "Loading..."
                   ) : (
-                    <span>7+</span>
+                    <span>{product.customerCount}+</span>
                   )} happy users
                 </Badge>
                 <button
                   onClick={async () => {
-                    console.log('🔄 Manual refresh clicked!')
                     setIsRefreshing(true)
                     // await syncWithFeedbackData() // Removed syncWithFeedbackData
                     setIsRefreshing(false)
-                    console.log('✅ Manual refresh completed!')
                   }}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                   title="Refresh stats"
@@ -423,7 +427,6 @@ export function ProductShowcase() {
                 </button>
                 <button
                   onClick={() => {
-                    console.log('🔍 Debug stats clicked!')
                     // debugStats() // Removed debugStats
                   }}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -433,7 +436,6 @@ export function ProductShowcase() {
                 </button>
                 <button
                   onClick={() => {
-                    console.log('🗑️ Clear store clicked!')
                     // clearStore() // Removed clearStore
                   }}
                   className="p-1 hover:bg-gray-100 rounded-full transition-colors"

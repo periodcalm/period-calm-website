@@ -4,18 +4,48 @@ import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Heart, Zap, Smile, Droplets } from "lucide-react"
+import { useAnalytics } from "@/hooks/useAnalytics"
 
 export function BenefitsSection() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [animatedPercentages, setAnimatedPercentages] = useState([0, 0, 0, 0])
   const sectionRef = useRef<HTMLElement>(null)
+  const { analyticsData, isLoading } = useAnalytics()
+
+  // Calculate dynamic percentages based on analytics data
+  const getDynamicPercentages = () => {
+    if (!analyticsData || isLoading) return [92, 89, 85, 87] // Fallback values
+    
+    const total = analyticsData.total_submissions
+    if (total === 0) return [92, 89, 85, 87]
+    
+    // Calculate percentages based on satisfaction and effectiveness
+    const satisfactionRate = Math.round((analyticsData.satisfaction_percentages.very_satisfied_percentage + analyticsData.satisfaction_percentages.satisfied_percentage))
+    const effectivenessRate = Math.round(analyticsData.average_ratings.effectiveness * 20) // Convert 1-5 scale to percentage
+    
+    // Safe calculation for recommendation rate
+    const recommendations = analyticsData.recommendations
+    const recommendationRate = recommendations && recommendations.would_recommend 
+      ? Math.round((recommendations.would_recommend / (recommendations.would_recommend + recommendations.would_not_recommend + recommendations.maybe)) * 100)
+      : 85
+    
+    // Safe calculation for side effect free rate
+    const sideEffects = analyticsData.side_effects
+    const sideEffectFreeRate = sideEffects && sideEffects.none 
+      ? Math.round((sideEffects.none / total) * 100)
+      : 87
+    
+    return [satisfactionRate, effectivenessRate, recommendationRate, sideEffectFreeRate]
+  }
+
+  const dynamicPercentages = getDynamicPercentages()
 
   const benefits = [
     {
       icon: Heart,
       title: "Cramp Relief",
-      percentage: 92,
+      percentage: dynamicPercentages[0],
       description: "Significant reduction in menstrual pain and cramping",
       detail:
         "Our magnesium blend and ginger extract work synergistically to relax uterine muscles and reduce inflammatory responses.",
@@ -24,7 +54,7 @@ export function BenefitsSection() {
     {
       icon: Smile,
       title: "Mood Harmony",
-      percentage: 89,
+      percentage: dynamicPercentages[1],
       description: "Improved emotional balance and mood stability",
       detail: "L-Theanine and GABA promote calm while supporting serotonin pathways for emotional well-being.",
       color: "orange",
@@ -32,7 +62,7 @@ export function BenefitsSection() {
     {
       icon: Zap,
       title: "Energy Boost",
-      percentage: 85,
+      percentage: dynamicPercentages[2],
       description: "Sustained energy without crashes",
       detail: "Natural caffeine with Rhodiola Rosea provides gentle alertness while combating period fatigue.",
       color: "pink",
@@ -40,7 +70,7 @@ export function BenefitsSection() {
     {
       icon: Droplets,
       title: "Bloat Relief",
-      percentage: 87,
+      percentage: dynamicPercentages[3],
       description: "Reduced bloating and water retention",
       detail: "Peppermint extract and electrolyte balance help reduce uncomfortable bloating and digestive issues.",
       color: "purple",
@@ -52,15 +82,16 @@ export function BenefitsSection() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true)
-          // Animate percentages
-          benefits.forEach((benefit, index) => {
+          // Animate percentages only once when section becomes visible
+          const currentPercentages = getDynamicPercentages()
+          currentPercentages.forEach((percentage, index) => {
             setTimeout(() => {
               let current = 0
-              const increment = benefit.percentage / 50
+              const increment = percentage / 50
               const timer = setInterval(() => {
                 current += increment
-                if (current >= benefit.percentage) {
-                  current = benefit.percentage
+                if (current >= percentage) {
+                  current = percentage
                   clearInterval(timer)
                 }
                 setAnimatedPercentages((prev) => {
@@ -81,7 +112,7 @@ export function BenefitsSection() {
     }
 
     return () => observer.disconnect()
-  }, [])
+  }, []) // Remove dynamicPercentages dependency to prevent re-animation
 
   const getColorClasses = (color: string) => {
     const colors = {

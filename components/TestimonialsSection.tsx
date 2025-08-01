@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Star, ChevronLeft, ChevronRight, Quote, RefreshCw } from "lucide-react"
 
 import { AnimatedCounter } from "@/components/AnimatedCounter"
+import { useAnalytics } from "@/hooks/useAnalytics"
 
 interface Testimonial {
   id: string
@@ -29,16 +30,11 @@ export default function TestimonialsSection() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
+  const { analyticsData, testimonials, isLoading, error, refetch } = useAnalytics()
 
   useEffect(() => {
     setIsVisible(true)
     setHasMounted(true)
-    // Use static testimonials instead of API call
-    setTestimonials([])
   }, [])
 
   const nextTestimonial = () => {
@@ -115,7 +111,7 @@ export default function TestimonialsSection() {
               ) : error ? (
                 <div className="text-center py-12">
                   <p className="text-gray-600 mb-4">{error}</p>
-                  <Button onClick={fetchTestimonials} variant="outline">
+                  <Button onClick={refetch} variant="outline">
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Try Again
                   </Button>
@@ -213,25 +209,25 @@ export default function TestimonialsSection() {
         >
           <div>
             <div className="text-3xl font-bold text-rose-600">
-                              <AnimatedCounter value={4.9} suffix="★" />
+              <AnimatedCounter value={analyticsData?.average_ratings?.overall_satisfaction || 4.9} suffix="★" />
             </div>
             <div className="text-gray-600 text-sm">Average Rating</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-orange-600">
-                              <AnimatedCounter value={7} />
+              <AnimatedCounter value={analyticsData?.total_submissions || 7} />
             </div>
             <div className="text-gray-600 text-sm">Reviews</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-pink-600">
-                              <AnimatedCounter value={500} suffix="+" />
+              <AnimatedCounter value={analyticsData?.total_submissions || 500} suffix="+" />
             </div>
             <div className="text-gray-600 text-sm">Happy Users</div>
           </div>
           <div>
             <div className="text-3xl font-bold text-green-600">
-              <AnimatedCounter value={83} suffix="%" />
+              <AnimatedCounter value={analyticsData?.recommendations?.would_recommend ? Math.round((analyticsData.recommendations.would_recommend / (analyticsData.recommendations.would_recommend + analyticsData.recommendations.would_not_recommend + analyticsData.recommendations.maybe)) * 100) : 83} suffix="%" />
             </div>
             <div className="text-gray-600 text-sm">Recommend Us</div>
           </div>

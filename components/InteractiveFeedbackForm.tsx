@@ -195,7 +195,7 @@ export default function InteractiveFeedbackForm({ onClose }: { onClose: () => vo
 
   const handleSubmit = async () => {
     // Here you would submit to your backend
-    console.log('Feedback submitted:', feedbackData)
+    // Feedback submitted successfully
     // Show success message and close
     onClose()
   }

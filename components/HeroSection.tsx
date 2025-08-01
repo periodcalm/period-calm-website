@@ -6,12 +6,16 @@ import { Badge } from "@/components/ui/badge"
 import { Star, Heart, Zap, Shield, ArrowRight, Play } from "lucide-react"
 
 import { AnimatedCounter } from "@/components/AnimatedCounter"
+import { useAnalytics } from "@/hooks/useAnalytics"
+import { LoadingSpinner } from "@/components/LoadingSpinner"
 import Image from "next/image"
 
 export default function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
+  const { analyticsData, testimonials, isLoading } = useAnalytics()
 
+  // Analytics data loaded
 
   useEffect(() => {
     setIsVisible(true)
@@ -25,8 +29,13 @@ export default function HeroSection() {
     }
   }
 
-  // Static review data
-  const latestReview = {
+  // Dynamic review data from testimonials
+  const latestReview = testimonials.length > 0 ? {
+    name: testimonials[0].name,
+    rating: testimonials[0].rating,
+    comment: testimonials[0].content,
+    timestamp: testimonials[0].submitted_at
+  } : {
     name: "Sarah J.",
     rating: 5,
     comment: "Life-changing relief! Within 20 minutes, my cramps were completely gone.",
@@ -70,17 +79,17 @@ export default function HeroSection() {
                   Period Pain
                 </span>
               </h1>
-              <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-2xl">
+              <div className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-2xl">
                 Natural relief in just <span className="font-semibold text-rose-600">0-20 minutes</span>. Join{" "}
                 <span className="font-semibold text-rose-600">
-                  <AnimatedCounter 
-                    value={500} 
-                    suffix="+" 
-                    className="font-semibold text-rose-600"
-                  />
+                  {isLoading ? (
+                    <LoadingSpinner size="sm" text="" className="justify-start" />
+                  ) : (
+                    <span>{analyticsData?.total_submissions || 0}</span>
+                  )}
                 </span>{" "}
                 users who trusted Period Calm for cramp relief, mood harmony, and energy boost.
-              </p>
+              </div>
             </div>
 
             {/* Trust Indicators */}
@@ -94,10 +103,18 @@ export default function HeroSection() {
                   <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 ))}
                 <span className="ml-2 font-semibold">
-                  <AnimatedCounter value={4.9} />
+                  {isLoading ? (
+                    <LoadingSpinner size="sm" text="" className="justify-start" />
+                  ) : (
+                    <span>{analyticsData?.average_ratings?.overall_satisfaction || 0}</span>
+                  )}
                 </span>
                 <span className="text-gray-600">
-                  (<AnimatedCounter value={7} /> reviews)
+                  ({isLoading ? (
+                    <LoadingSpinner size="sm" text="" className="justify-start" />
+                  ) : (
+                    <span>{analyticsData?.total_submissions || 0}</span>
+                  )} reviews)
                 </span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -143,19 +160,31 @@ export default function HeroSection() {
             >
               <div className="text-center">
                 <div className="text-3xl font-bold text-rose-600">
-                  <AnimatedCounter value={4.9} suffix={<Star className="inline w-5 h-5 text-yellow-400 ml-1" />} />
+                  {isLoading ? (
+                    <LoadingSpinner size="sm" text="" className="justify-center" />
+                  ) : (
+                    <span>{analyticsData?.average_ratings?.overall_satisfaction || 0}★</span>
+                  )}
                 </div>
                 <div className="text-gray-600 text-sm">Average Rating</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-orange-600">
-                  <AnimatedCounter value={7} />
+                  {isLoading ? (
+                    <LoadingSpinner size="sm" text="" className="justify-center" />
+                  ) : (
+                    <span>{analyticsData?.total_submissions || 0}</span>
+                  )}
                 </div>
                 <div className="text-gray-600 text-sm">Reviews</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-pink-600">
-                  <AnimatedCounter value={500} suffix="+" />
+                  {isLoading ? (
+                    <LoadingSpinner size="sm" text="" className="justify-center" />
+                  ) : (
+                    <span>{analyticsData?.total_submissions || 0}+</span>
+                  )}
                 </div>
                 <div className="text-gray-600 text-sm">Happy Users</div>
               </div>

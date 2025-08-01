@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
 
     // Get the last AI message to understand context
     const lastAIMessage = conversationHistory
-      .filter(msg => msg.role === 'assistant')
+      .filter((msg: any) => msg.role === 'assistant')
       .pop()?.content || ''
 
     const lowerInput = userInput.toLowerCase()
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
     else if (lastAIMessage.includes("city and state")) {
       // User provided their location
-      const locationParts = userInput.split(',').map(part => part.trim())
+      const locationParts = userInput.split(',').map((part: string) => part.trim())
       const city = locationParts[0] || ''
       const state = locationParts[1] || ''
       aiResponse = "When did you drink Period Calm? (e.g., last week, yesterday, etc.)"

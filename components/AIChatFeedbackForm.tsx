@@ -390,11 +390,11 @@ const QUESTIONS = [
   {
     id: 34,
     type: 'improvements',
-    title: "What could we improve? 🔧",
-    description: "Your suggestions help us make Period Calm even better",
+    title: "What would you tell other women about Period Calm? 💬",
+    description: "Share your honest experience to help other women make informed decisions",
     required: false,
-    placeholder: "Share your ideas for improvements...",
-    emoji: "🔧"
+    placeholder: "Your honest review and experience with Period Calm...",
+    emoji: "💬"
   },
   {
     id: 35,
@@ -595,7 +595,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
     
     try {
       // Debug: Log the data being sent
-      console.log('Submitting feedback data:', feedbackData)
+      // Submitting feedback data
       
       // Validate email before sending
       if (!feedbackData.email || !feedbackData.email.includes('@')) {
@@ -618,7 +618,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       }
 
       // Log successful submission
-      console.log('Feedback submitted successfully:', result)
+              // Feedback submitted successfully
       
       // Show success message
       setShowSuccess(true)
@@ -630,7 +630,7 @@ export default function AIChatFeedbackForm({ onCloseAction }: { onCloseAction: (
       }, 4000)
       
     } catch (err) {
-      console.error('Error submitting feedback:', err)
+      // Error submitting feedback
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {
       setIsSubmitting(false)

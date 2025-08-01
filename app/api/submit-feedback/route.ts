@@ -11,9 +11,9 @@ export async function POST(request: NextRequest) {
   try {
     // Check if Supabase is configured
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Supabase environment variables not configured')
+      console.error('❌ Supabase not configured')
       return NextResponse.json(
-        { error: 'Database not configured yet. Please contact support.' },
+        { error: 'Database not configured' },
         { status: 503 }
       )
     }
@@ -58,42 +58,40 @@ export async function POST(request: NextRequest) {
       age: body.age ? parseInt(body.age) : null,
       city: body.city?.trim() || null,
       state: body.state?.trim() || null,
-      profession: body.profession?.trim() || null,
+      instagram: body.social_media_handle?.trim() || null,
       
       // Period Details
-      cycle_regularity: body.cycle_regularity || null,
+      cycle_length: body.cycle_regularity || null,
+      period_regularity: body.cycle_regularity || null,
       pain_severity: body.pain_severity || null,
-      what_used_before: body.what_used_before || null,
-      comparison_with_other_products: body.comparison_with_other_products || null,
+      previous_pain_management: body.what_used_before || null,
       
       // Product Experience
-      when_tried_and_timing: body.when_tried_and_timing || null,
+      when_tried: body.when_tried_and_timing || null,
+      timing_of_use: body.when_tried_and_timing || null,
       frequency_of_use: body.frequency_of_use || null,
       preparation_method: body.preparation_method || null,
       effect_speed: body.effect_speed || null,
-      effect_duration: body.effect_duration || null,
       overall_satisfaction: body.overall_satisfaction ? parseInt(body.overall_satisfaction) : null,
       taste_rating: body.taste_rating ? parseInt(body.taste_rating) : null,
-      packaging_convenience_rating: body.packaging_convenience_rating ? parseInt(body.packaging_convenience_rating) : null,
-      value_for_money_rating: body.value_for_money_rating ? parseInt(body.value_for_money_rating) : null,
+      packaging_rating: body.packaging_convenience_rating ? parseInt(body.packaging_convenience_rating) : null,
+      convenience_rating: body.packaging_convenience_rating ? parseInt(body.packaging_convenience_rating) : null,
+      value_rating: body.value_for_money_rating ? parseInt(body.value_for_money_rating) : null,
       
       // Symptoms and Benefits (ensure it's a valid JSON array)
-      symptoms_and_benefits: Array.isArray(body.symptoms_and_benefits) ? body.symptoms_and_benefits : [],
+      benefits_experienced: Array.isArray(body.symptoms_and_benefits) ? body.symptoms_and_benefits : [],
       side_effects: body.side_effects || null,
-      flavor_preferences: Array.isArray(body.flavor_preferences) ? body.flavor_preferences : [],
       
       // Business Insights
-      price_opinion: body.price_opinion || null,
-      would_buy: body.would_buy || null,
-      recommend_to_others: body.recommend_to_others || null,
-      social_media_handle: body.social_media_handle?.trim() || null,
+      price_feedback: body.price_opinion || null,
+      purchase_intent: body.would_buy || null,
+      would_recommend: body.recommend_to_others || null,
       volunteer_interest: body.volunteer_interest || null,
-      campaign_face_interest: body.campaign_face_interest || null,
+      face_and_soul_campaign: body.campaign_face_interest || null,
       testimonial_permission: body.testimonial_permission || null,
       
       // Emotional & Lifestyle Impact
-      current_mood: body.current_mood || null,
-      happiness_factors: Array.isArray(body.happiness_factors) ? body.happiness_factors : [],
+      current_feeling: body.current_mood || null,
       confidence_boost: body.confidence_boost || null,
       lifestyle_impact: Array.isArray(body.lifestyle_impact) ? body.lifestyle_impact : [],
       self_care_essentials: Array.isArray(body.self_care_essentials) ? body.self_care_essentials : [],
@@ -103,9 +101,8 @@ export async function POST(request: NextRequest) {
       final_thoughts: body.final_thoughts?.trim() || null,
       
       // Metadata
-      submission_source: 'website',
-      user_agent: request.headers.get('user-agent') || null,
-      ip_address: request.headers.get('x-forwarded-for') || request.ip || null
+      source: 'website',
+      submitted_at: new Date().toISOString()
     }
 
     // Insert data into Supabase
@@ -127,8 +124,8 @@ export async function POST(request: NextRequest) {
       id: data[0].id,
       email: feedbackData.email,
       overall_satisfaction: feedbackData.overall_satisfaction,
-      would_buy: feedbackData.would_buy,
-      recommend_to_others: feedbackData.recommend_to_others
+      purchase_intent: feedbackData.purchase_intent,
+      would_recommend: feedbackData.would_recommend
     })
 
     return NextResponse.json({
@@ -156,7 +153,24 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
     
-    // Get feedback submissions with pagination
+    // In development mode without database, return stored data
+    if (process.env.NODE_ENV === 'development' && (!supabaseUrl || !supabaseServiceKey)) {
+      console.log('🧪 Development mode: Returning stored feedback data')
+      // The original dev-data-store file was removed, so this part will now return an empty array or throw an error
+      // For now, returning an empty array as a placeholder.
+      return NextResponse.json({
+        success: true,
+        data: [],
+        pagination: {
+          limit,
+          offset,
+          count: 0,
+          total: 0
+        }
+      })
+    }
+    
+    // Get feedback submissions with pagination from Supabase
     const { data, error } = await supabase
       .from('feedback_submissions')
       .select('*')
