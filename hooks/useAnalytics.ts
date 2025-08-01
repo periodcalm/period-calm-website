@@ -153,6 +153,24 @@ export function useAnalytics() {
     fetchAnalytics()
   }, [])
 
+  // Listen for feedback submission events to refresh data
+  useEffect(() => {
+    const handleFeedbackSubmitted = () => {
+      fetchAnalytics()
+    }
+
+    window.addEventListener('feedbackSubmitted', handleFeedbackSubmitted)
+    
+    return () => {
+      window.removeEventListener('feedbackSubmitted', handleFeedbackSubmitted)
+    }
+  }, [])
+
+  // Add refetch function for manual refresh
+  const refetch = () => {
+    fetchAnalytics()
+  }
+
   // Helper functions for derived metrics
   const getSuccessRate = () => {
     if (!analyticsData) return 0
