@@ -132,6 +132,15 @@ export default function Footer() {
             </span>
           </div>
         </div>
+        
+        {/* Legal Disclaimer */}
+        <div className="border-t border-gray-800 pt-4 mt-4">
+          <p className="text-xs text-gray-500 text-center leading-relaxed">
+            <strong>Medical Disclaimer:</strong> Period Calm is a dietary supplement and is not intended to diagnose, treat, cure, or prevent any disease. 
+            These statements have not been evaluated by the FDA. Always consult with a healthcare professional before use. 
+            Individual results may vary. Not suitable for pregnant or nursing women without medical consultation.
+          </p>
+        </div>
       </div>
     </footer>
   )

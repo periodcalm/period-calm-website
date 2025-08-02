@@ -6,6 +6,7 @@ import TestimonialsSection from "@/components/TestimonialsSection"
 import EducationalSection from "@/components/EducationalSection"
 import CycleTracker from "@/components/CycleTracker"
 import TrustSection from "@/components/TrustSection"
+import LegalDisclaimer from "@/components/LegalDisclaimer"
 
 const ProductShowcase = dynamic(() => import("@/components/ProductShowcase"), { ssr: false })
 
@@ -19,6 +20,7 @@ export default function HomePage() {
       <EducationalSection />
       <CycleTracker />
       <TrustSection />
+      <LegalDisclaimer />
     </div>
   )
 }
