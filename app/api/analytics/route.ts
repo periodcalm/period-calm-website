@@ -259,7 +259,7 @@ export async function GET(request: NextRequest) {
     const effectivenessScore = totalSubmissions > 0 ? 
       Math.round(((avgOverall * 0.4) + (recommendationPercentage * 0.3) + (purchaseIntent * 0.3)) / 10) : 0
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         total_submissions: totalSubmissions,
@@ -347,6 +347,13 @@ export async function GET(request: NextRequest) {
         }
       }
     })
+
+    // Add cache headers to prevent caching
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
 
   } catch (error) {
     console.error('Error retrieving analytics:', error)

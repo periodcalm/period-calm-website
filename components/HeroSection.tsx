@@ -69,9 +69,16 @@ export default function HeroSection() {
                   #1 Natural Period Relief
                 </Badge>
                 <button
-                  onClick={() => refetch()}
+                  onClick={() => {
+                    console.log('🔄 Manual refresh clicked')
+                    refetch()
+                    // Force a complete page refresh after 1 second to ensure latest data
+                    setTimeout(() => {
+                      window.location.reload()
+                    }, 1000)
+                  }}
                   className="p-1 hover:bg-rose-100 rounded-full transition-colors"
-                  title="Refresh data"
+                  title="Refresh data and reload page"
                 >
                   <RefreshCw className={`w-4 h-4 text-rose-600 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>

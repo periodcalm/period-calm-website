@@ -99,22 +99,43 @@ export function useAnalytics() {
 
       // Add cache-busting parameter to prevent caching
       const timestamp = new Date().getTime()
+      const randomId = Math.random().toString(36).substring(7)
 
-      // Fetch analytics data
-      const analyticsResponse = await fetch(`/api/analytics?t=${timestamp}`)
+      // Fetch analytics data with aggressive cache busting
+      const analyticsResponse = await fetch(`/api/analytics?t=${timestamp}&r=${randomId}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       if (!analyticsResponse.ok) {
         throw new Error('Failed to fetch analytics data')
       }
       const analytics = await analyticsResponse.json()
 
-      // Fetch testimonials from feedback submissions
-      const feedbackResponse = await fetch(`/api/submit-feedback?t=${timestamp}`)
+      // Fetch testimonials from feedback submissions with aggressive cache busting
+      const feedbackResponse = await fetch(`/api/submit-feedback?t=${timestamp}&r=${randomId}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       if (!feedbackResponse.ok) {
         throw new Error('Failed to fetch feedback data')
       }
       const feedbackData = await feedbackResponse.json()
 
       // Analytics data fetched successfully
+      console.log('🔄 Analytics fetched:', {
+        totalSubmissions: analytics.data.total_submissions,
+        feedbackCount: feedbackData.data.length,
+        timestamp: new Date().toLocaleTimeString(),
+        isProduction: process.env.NODE_ENV === 'production'
+      })
 
       // Transform feedback data into testimonials
       const transformedTestimonials: Testimonial[] = feedbackData.data
@@ -163,7 +184,14 @@ export function useAnalytics() {
 
   useEffect(() => {
     fetchAnalytics()
-  }, [])
+    
+    // Set up periodic refresh every 30 seconds to ensure data stays current
+    const interval = setInterval(() => {
+      fetchAnalytics()
+    }, 30000) // 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [fetchAnalytics])
 
   // Listen for feedback submission events to refresh data
   useEffect(() => {
