@@ -265,7 +265,7 @@ export function ProductShowcase() {
 
   return (
     <section className="py-20 bg-gradient-to-br from-gray-50 to-rose-50" id="product">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div
           className={`text-center mb-16 transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
@@ -281,7 +281,7 @@ export function ProductShowcase() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Product Images */}
           <div
             className={`space-y-6 transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"}`}
@@ -367,7 +367,7 @@ export function ProductShowcase() {
 
           {/* Product Details */}
           <div
-            className={`space-y-8 transition-all duration-1000 delay-400 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`}
+            className={`space-y-8 transition-all duration-1000 delay-400 w-full overflow-hidden ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"}`}
           >
             {/* Product Header */}
             <div>
@@ -445,11 +445,11 @@ export function ProductShowcase() {
                 </button>
               </div>
 
-              <p className="text-lg text-gray-600 leading-relaxed">{product.description}</p>
+              <p className="text-lg text-gray-600 leading-relaxed break-words">{product.description}</p>
             </div>
 
             {/* Product Information Tabs */}
-            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full overflow-hidden">
               <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-xl">
                 <TabsTrigger
                   value="ingredients"
@@ -480,12 +480,12 @@ export function ProductShowcase() {
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div className="mb-1">
-                              <h4 className="font-semibold">{ingredient.name}</h4>
+                              <h4 className="font-semibold break-words">{ingredient.name}</h4>
                             </div>
-                            <p className="text-sm font-medium mb-1">{ingredient.benefit}</p>
-                            <p className="text-xs opacity-80">{ingredient.description}</p>
+                            <p className="text-sm font-medium mb-1 break-words">{ingredient.benefit}</p>
+                            <p className="text-xs opacity-80 break-words leading-relaxed">{ingredient.description}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -511,12 +511,12 @@ export function ProductShowcase() {
                       >
                         <div className="flex items-center space-x-4">
                           <Icon className="w-8 h-8 flex-shrink-0" />
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-2xl font-bold">{benefit.percentage}%</span>
                               <span className="text-sm opacity-80">of users report</span>
                             </div>
-                            <p className="text-sm font-medium">{benefit.text}</p>
+                            <p className="text-sm font-medium break-words">{benefit.text}</p>
                           </div>
                         </div>
                       </div>
@@ -538,12 +538,12 @@ export function ProductShowcase() {
                           <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-sm flex-shrink-0">
                             {step.step}
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <h4 className="font-semibold mb-2 flex items-center gap-2">
                               <Icon className="w-4 h-4" />
                               {step.title}
                             </h4>
-                            <p className="text-sm opacity-90">{step.description}</p>
+                            <p className="text-sm opacity-90 break-words">{step.description}</p>
                           </div>
                         </div>
                       </div>

@@ -230,13 +230,7 @@ export function BenefitsSection() {
           })}
         </div>
 
-        <div
-          className={`text-center mt-12 transition-all duration-1000 delay-500 ${isVisible ? "opacity-100" : "opacity-0"}`}
-        >
-          <p className="text-sm text-gray-500">
-            *Results based on user testing with 500+ participants and gynecologist validation over 3 months
-          </p>
-        </div>
+
       </div>
     </section>
   )
