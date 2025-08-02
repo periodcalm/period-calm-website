@@ -101,8 +101,8 @@ export function useAnalytics() {
       const timestamp = new Date().getTime()
       const randomId = Math.random().toString(36).substring(7)
 
-      // Fetch analytics data with aggressive cache busting
-      const analyticsResponse = await fetch(`/api/analytics?t=${timestamp}&r=${randomId}`, {
+      // Fetch analytics data with aggressive cache busting and force refresh
+      const analyticsResponse = await fetch(`/api/analytics?t=${timestamp}&r=${randomId}&force=true&debug=true`, {
         method: 'GET',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -160,10 +160,10 @@ export function useAnalytics() {
   useEffect(() => {
     fetchAnalytics()
     
-    // Set up periodic refresh every 10 seconds to ensure data stays current
+    // Set up periodic refresh every 5 seconds to ensure data stays current
     const interval = setInterval(() => {
       fetchAnalytics()
-    }, 10000) // 10 seconds
+    }, 5000) // 5 seconds
     
     return () => clearInterval(interval)
   }, [fetchAnalytics])

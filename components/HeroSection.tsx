@@ -71,14 +71,17 @@ export default function HeroSection() {
                 <button
                   onClick={() => {
                     console.log('🔄 Manual refresh clicked')
+                    // Force multiple refreshes to ensure data sync
                     refetch()
-                    // Force a complete page refresh after 1 second to ensure latest data
+                    setTimeout(() => refetch(), 500)
+                    setTimeout(() => refetch(), 1000)
+                    // Force a complete page refresh after 2 seconds to ensure latest data
                     setTimeout(() => {
                       window.location.reload()
-                    }, 1000)
+                    }, 2000)
                   }}
                   className="p-1 hover:bg-rose-100 rounded-full transition-colors"
-                  title="Refresh data and reload page"
+                  title="Force refresh data and reload page"
                 >
                   <RefreshCw className={`w-4 h-4 text-rose-600 ${isLoading ? 'animate-spin' : ''}`} />
                 </button>

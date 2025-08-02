@@ -18,12 +18,32 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Get query parameters for debugging
+    const { searchParams } = new URL(request.url)
+    const forceRefresh = searchParams.get('force') === 'true'
+    const debug = searchParams.get('debug') === 'true'
+
     // Get analytics from the feedback_submissions table directly
     // Add cache-busting by ordering by created_at desc to ensure latest data
-    const { data: submissions, error: submissionsError } = await supabase
+    let { data: submissions, error: submissionsError } = await supabase
       .from('feedback_submissions')
       .select('*')
       .order('created_at', { ascending: false })
+
+    // If force refresh is requested, try a second query with different approach
+    if (forceRefresh && submissions) {
+      console.log('🔄 Force refresh requested, re-querying database...')
+      const { data: freshSubmissions, error: freshError } = await supabase
+        .from('feedback_submissions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000) // Ensure we get all records
+      
+      if (!freshError && freshSubmissions) {
+        submissions = freshSubmissions
+        console.log('✅ Force refresh completed, new count:', freshSubmissions.length)
+      }
+    }
 
     if (submissionsError) {
       console.error('Submissions error:', submissionsError)
@@ -45,7 +65,9 @@ export async function GET(request: NextRequest) {
       submissionEmails: submissions?.map(f => f.email) || [],
       submissionIds: submissions?.map(f => f.id) || [],
       submissionCreatedAts: submissions?.map(f => f.created_at) || [],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      supabaseUrl: supabaseUrl ? 'configured' : 'not configured'
     })
 
     // Add detailed record-by-record logging
