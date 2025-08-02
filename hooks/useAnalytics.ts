@@ -122,24 +122,48 @@ export function useAnalytics() {
         isProduction: process.env.NODE_ENV === 'production'
       })
 
-      // Create testimonials from analytics data instead of separate API call
-      // This ensures consistency between analytics and testimonials
-      const transformedTestimonials: Testimonial[] = Array.from({ length: Math.min(analytics.data.total_submissions, 10) }, (_, index) => ({
-        id: `testimonial-${index}`,
-        name: `User ${index + 1}`,
-        age: null,
-        location: 'India',
-        rating: analytics.data.average_ratings.overall_satisfaction,
-        title: 'Great experience with Period Calm',
-        content: 'This product really helped with my period pain and provided significant relief.',
-        image: `/placeholder.svg?height=60&width=60&text=${String.fromCharCode(65 + (index % 26))}`,
-        verified: true,
-        beforeAfter: {
-          before: 'Severe cramps and discomfort',
-          after: 'Significant relief'
-        },
-        submitted_at: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString()
-      }))
+      // Fetch testimonials from feedback submissions with aggressive cache busting
+      const feedbackResponse = await fetch(`/api/submit-feedback?t=${timestamp}&r=${randomId}&force=true`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+      if (!feedbackResponse.ok) {
+        throw new Error('Failed to fetch feedback data')
+      }
+      const feedbackData = await feedbackResponse.json()
+
+      // Transform feedback data into testimonials
+      const transformedTestimonials: Testimonial[] = feedbackData.data
+        .filter((item: any) => 
+          item.overall_satisfaction >= 4 && 
+          (item.would_recommend?.includes('definitely') || item.would_recommend?.includes('probably')) &&
+          (item.testimonial_text || item.improvements || item.additional_feedback)
+        )
+        .map((item: any, index: number) => ({
+          id: item.id || `testimonial-${index}`,
+          name: `${item.first_name || 'User'} ${item.last_name || (index + 1)}`,
+          age: item.age || null,
+          location: item.city || 'India',
+          rating: item.overall_satisfaction || 5,
+          title: item.testimonial_title || 'Great experience with Period Calm',
+          content: item.testimonial_text || item.improvements || item.additional_feedback || 'This product really helped with my period pain.',
+          image: `/placeholder.svg?height=60&width=60&text=${(item.first_name || 'U').charAt(0).toUpperCase()}`,
+          verified: true,
+          beforeAfter: {
+            before: item.pain_severity ? `${item.pain_severity} pain` : 
+                   item.what_used_before ? `Used ${item.what_used_before}` : 
+                   'Severe cramps and discomfort',
+            after: item.overall_satisfaction >= 4 ? 
+                   (item.effect_speed ? `Relief in ${item.effect_speed}` : 'Significant relief') :
+                   (item.improvements ? `Improved with ${item.improvements}` : 'Better experience')
+          },
+          submitted_at: item.created_at || new Date().toISOString()
+        }))
+        .slice(0, 10) // Limit to 10 best testimonials
 
       // Force state update with new data
       setAnalyticsData(analytics.data)

@@ -152,6 +152,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
+    const forceRefresh = searchParams.get('force') === 'true'
     
     // In development mode without database, return stored data
     if (process.env.NODE_ENV === 'development' && (!supabaseUrl || !supabaseServiceKey)) {
@@ -171,12 +172,27 @@ export async function GET(request: NextRequest) {
     }
     
     // Get feedback submissions with pagination from Supabase
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('feedback_submissions')
       .select('*')
       .order('created_at', { ascending: false })
       // Remove pagination to get all records like analytics API
       // .range(offset, offset + limit - 1)
+
+    // If force refresh is requested, try a second query
+    if (forceRefresh && data !== null && data.length > 0) {
+      console.log('🔄 Submit-feedback force refresh requested...')
+      const { data: freshData, error: freshError } = await supabase
+        .from('feedback_submissions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000)
+      
+      if (!freshError && freshData) {
+        data = freshData
+        console.log('✅ Submit-feedback force refresh completed, new count:', freshData.length)
+      }
+    }
 
     if (error) {
       console.error('Supabase select error:', error)
