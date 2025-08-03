@@ -72,7 +72,6 @@ export function Header() {
     { href: "#testimonials", label: "Reviews", action: () => scrollToSection("testimonials") },
     { href: "/blog", label: "Blog", action: () => (window.location.href = "/blog") },
     { href: "/sherises", label: "SheRises", action: () => setIsComingSoonOpen(true) },
-    { href: "/founders", label: "Our Story", action: () => (window.location.href = "/founders") },
   ]
 
   return (

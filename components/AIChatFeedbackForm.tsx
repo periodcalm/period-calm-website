@@ -175,15 +175,6 @@ const QUESTIONS = [
     emoji: "⏰"
   },
   {
-    id: 11,
-    type: 'timing_use',
-    title: "When did you take Period Calm? 🕐",
-    description: "Timing can make a big difference!",
-    required: false,
-    options: ["Before period started", "When cramps began", "During period", "After period", "Multiple times"],
-    emoji: "🕐"
-  },
-  {
     id: 12,
     type: 'effect_speed',
     title: "How quickly did you feel relief? ⚡",
